@@ -1,0 +1,39 @@
+﻿@page
+@model Examensarbete.Pages.Uploads.UploadProductsModel
+@{
+    var errorMessage = TempData["ErrorMessage"] as string;
+
+}
+
+<div class="container mt-5">
+
+    <div class="row justify-content-center">
+        <div class="col-md-6 text-center">
+            <h1 class="mb-5 mt-5">Produkter</h1>
+
+            <!-- Knappar för att ladda upp dokument -->
+            <form method="post" enctype="multipart/form-data" asp-page-handler="UploadProducts">
+                <input type="file" name="fileUpload" />
+                <button type="submit" class="btn btn-primary btn-block">Ladda upp</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Error Alert -->
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert text-center mb-5" style="background-color: #F39B9B" role="alert">
+                    @Html.Raw(errorMessage)
+                </div>
+
+                <!-- Knapp för att resetta sidan -->
+                <div class="d-flex flex-column align-items-center">
+                    <a href="~/uploads/Upload" class="btn btn-primary mb-2">Ladda upp en ny fil</a>
+                </div>
+            }
+        </div>
+    </div>
+
+</div>

@@ -1,0 +1,355 @@
+﻿@page
+@model Examensarbete.Pages.Product.CreateModel
+
+@{
+    ViewData["Title"] = "Create";
+    ViewData["IsAdminSection"] = true;
+
+}
+
+<div class="mt-3 mb-3">
+    <h2>Skapa Produkt</h2>
+</div>
+<hr />
+<div class="container mt-4">
+    <form method="post">
+        <div class="row">
+
+            <div class="col-md-4">
+                <!-- Produktinformation -->
+                <div class="row mb-3">
+                    <div class="col">
+                        <div class="form-group">
+                            <label asp-for="ProductViewModel.Name" class="control-label">Beskrivning</label>
+                            <input asp-for="ProductViewModel.Name" class="form-control" />
+                            <span asp-validation-for="ProductViewModel.Name" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ProductViewModel.ArticleNumber" class="control-label">Artikelnummer</label>
+                            <input asp-for="ProductViewModel.ArticleNumber" class="form-control" />
+                            <span asp-validation-for="ProductViewModel.ArticleNumber" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ProductViewModel.PricePerUnit" class="control-label">Pris per enhet</label>
+                            <input asp-for="ProductViewModel.PricePerUnit" class="form-control" />
+                            <span asp-validation-for="ProductViewModel.PricePerUnit" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label asp-for="ProductViewModel.WeightPerUnit" class="control-label">Vikt per enhet</label>
+                            <input asp-for="ProductViewModel.WeightPerUnit" class="form-control" />
+                            <span asp-validation-for="ProductViewModel.WeightPerUnit" class="text-danger"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label asp-for="ProductViewModel.RecyclingRateAtEoL" class="control-label">Förbränningsfaktor vid EoL</label>
+                            <input asp-for="ProductViewModel.RecyclingRateAtEoL" class="form-control" />
+                            <span asp-validation-for="ProductViewModel.RecyclingRateAtEoL" class="text-danger"></span>
+                        </div>
+
+                        <div id="selectedMaterialsList" class="mt-3">
+                            <h5>Valda material</h5>
+                            <ul id="selectedMaterials"></ul>
+                        </div>
+
+                        <div id="selectedCategoriesList">
+                            <h5>Valda kategorier</h5>
+                            <ul id="selectedCategories"></ul>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col">
+                        <input type="submit" value="Spara produkt" class="btn btn-primary" />
+                        <button type="button" class="btn btn-secondary">Avbryt</button>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-8">
+                <div class="row">
+                    <div class="mb-3">
+                        <button type="button" class="btn btn-primary" onclick="toggleMaterialCard()">Material</button>
+                        <button type="button" class="btn btn-primary" onclick="toggleCategoryCard()">Kategorier</button>
+                    </div>
+                </div>
+                <div class="row">
+                    <div id="materialCard" class="card d-none">
+                        <div class="card-body">
+                            <h5 class="card-title">Välj material</h5>
+                            @for (int i = 0; i < Model.ProductViewModel.Materials.Count; i++)
+                            {
+                                <div class="d-flex align-items-center">
+                                    <input asp-for="ProductViewModel.Materials[i].Percentage" class="form-control material-percentage" type="number" min="0" max="100 " style="width: 60px;" />
+                                    <span>%</span>
+                                    <input asp-for="ProductViewModel.Materials[i].IsSelected" class="form-check-input material-checkbox" data-material-name="@Model.ProductViewModel.Materials[i].MaterialName" type="checkbox" />
+                                    <label class="form-check-label mx-2">@Model.ProductViewModel.Materials[i].MaterialName</label>
+                                    <input asp-for="ProductViewModel.Materials[i].MaterialId" type="hidden" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div id="categoryCard" class="card d-none">
+                        <div class="card-body">
+                            <h5 class="card-title">Välj kategori</h5>
+                            @{
+                                // Skapar en uppslagningstabell för index av valda kategorier baserat på deras ID
+                                var categoryIndexLookup = new Dictionary<int, int>();
+                                for (int i = 0; i < Model.ProductViewModel.Categories.Count; i++)
+                                {
+                                    categoryIndexLookup[Model.ProductViewModel.Categories[i].CategoryId] = i;
+                                }
+                            }
+
+                            @* Loop för huvudkategorier *@
+                            <h5>Huvudkategorier</h5>
+                            @foreach (var category in Model.RootCategories)
+                            {
+                                // Använder uppslagningstabellen för att få index
+                                int index = categoryIndexLookup[category.Id];
+                                <div class="form-check">
+                                    <input asp-for="@Model.ProductViewModel.Categories[index].IsSelected"
+                                           class="form-check-input category-checkbox root-category-checkbox"
+                                           data-category-id="@category.Id"
+                                           data-category-name="@category.Name"
+                                           type="checkbox" />
+                                    <label class="form-check-label">@category.Name</label>
+                                    <input asp-for="ProductViewModel.Categories[index].CategoryId" type="hidden" />
+                                </div>
+                            }
+
+                            @* Loop för första nivåns underkategorier *@
+                            <h5>Första nivåns underkategorier</h5>
+                            @foreach (var category in Model.FirstLevelChildCategories)
+                            {
+                                int index = categoryIndexLookup[category.Id];
+                                <div class="form-check">
+                                    <input asp-for="@Model.ProductViewModel.Categories[index].IsSelected"
+                                           class="form-check-input category-checkbox first-level-category-checkbox"
+                                           data-parent-id="@category.ParentId"
+                                           data-category-id="@category.Id"
+                                           data-category-name="@category.Name"
+                                           type="checkbox" />
+                                    <label class="form-check-label">@category.Name</label>
+                                    <input asp-for="ProductViewModel.Categories[index].CategoryId" type="hidden" />
+                                </div>
+                            }
+
+                            @* Loop för lägre nivåns underkategorier *@
+                            <h5>Lägre nivåns underkategorier</h5>
+                            @foreach (var category in Model.LowerLevelChildCategories)
+                            {
+                                int index = categoryIndexLookup[category.Id];
+                                <div class="form-check">
+                                    <input asp-for="@Model.ProductViewModel.Categories[index].IsSelected"
+                                           class="form-check-input category-checkbox lower-level-category-checkbox"
+                                           data-parent-id="@category.ParentId"
+                                           data-category-id="@category.Id"
+                                           data-category-name="@category.Name"
+                                           type="checkbox" />
+                                    <label class="form-check-label">@category.Name</label>
+                                    <input asp-for="ProductViewModel.Categories[index].CategoryId" type="hidden" />
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+    <script>
+
+        document.addEventListener('DOMContentLoaded', function () {
+
+            // Material-relaterad kod
+            var materialsCheckboxes = document.querySelectorAll('.material-checkbox');
+            var materialsPercentages = document.querySelectorAll('.material-percentage');
+            var selectedMaterialsList = document.getElementById('selectedMaterials');
+
+            materialsPercentages.forEach(function (input) {
+                input.disabled = true;
+            });
+
+            function calculateTotalPercentageAndUpdateList() {
+                var totalPercentage = 0;
+                selectedMaterialsList.innerHTML = '';
+
+                materialsCheckboxes.forEach(function (checkbox, index) {
+                    var percentageValue = parseFloat(materialsPercentages[index].value) || 0;
+                    if (checkbox.checked) {
+                        totalPercentage += percentageValue;
+
+                        var materialName = checkbox.getAttribute('data-material-name');
+                        var listItem = document.createElement('li');
+                        listItem.textContent = materialName + ' - ' + percentageValue + '%';
+                        selectedMaterialsList.appendChild(listItem);
+                    }
+                });
+
+                materialsCheckboxes.forEach(function (checkbox, index) {
+                    if (totalPercentage >= 100 && !checkbox.checked) {
+                        checkbox.disabled = true;
+                        materialsPercentages[index].disabled = true;
+                    } else {
+                        checkbox.disabled = false;
+                        if (checkbox.checked) {
+                            materialsPercentages[index].disabled = false;
+                        }
+                    }
+                });
+
+                if (totalPercentage > 100) {
+                    alert('Den totala procentandelen får inte överstiga 100.');
+                }
+            }
+
+            materialsCheckboxes.forEach(function (checkbox, index) {
+                checkbox.addEventListener('change', function () {
+                    if (!checkbox.checked) {
+                        materialsPercentages[index].value = '';
+                        materialsPercentages[index].disabled = true;
+                    } else {
+                        materialsPercentages[index].disabled = false;
+                    }
+
+                    calculateTotalPercentageAndUpdateList();
+                });
+            });
+
+            materialsPercentages.forEach(function (input) {
+                input.addEventListener('input', calculateTotalPercentageAndUpdateList);
+            });
+
+            calculateTotalPercentageAndUpdateList();
+
+            var categoryCheckboxes = document.querySelectorAll('.category-checkbox');
+            var selectedCategoriesList = document.getElementById('selectedCategories');
+
+            function updateSelectedCategoriesList() {
+                selectedCategoriesList.innerHTML = '';
+
+                categoryCheckboxes.forEach(function (checkbox) {
+                    if (checkbox.checked) {
+                        var categoryName = checkbox.getAttribute('data-category-name');
+                        var listItem = document.createElement('li');
+                        listItem.textContent = categoryName;
+                        selectedCategoriesList.appendChild(listItem);
+                    }
+                });
+            }
+
+            categoryCheckboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', updateSelectedCategoriesList);
+            });
+
+            calculateTotalPercentageAndUpdateList();
+            updateSelectedCategoriesList();
+
+            // Kategori-relaterad kod
+            var rootCategoryCheckboxes = document.querySelectorAll('.root-category-checkbox');
+            var firstLevelCategoryCheckboxes = document.querySelectorAll('.first-level-category-checkbox');
+            var lowerLevelCategoryCheckboxes = document.querySelectorAll('.lower-level-category-checkbox');
+            var selectedCategoriesList = document.getElementById('selectedCategories');
+
+            function updateCategoryAvailability() {
+                var selectedRootCategoryId = null;
+                rootCategoryCheckboxes.forEach(function (checkbox) {
+                    if (checkbox.checked) {
+                        selectedRootCategoryId = checkbox.getAttribute('data-category-id');
+                    }
+                });
+
+                firstLevelCategoryCheckboxes.forEach(function (childCheckbox) {
+                    var parentId = childCheckbox.getAttribute('data-parent-id');
+                    if (selectedRootCategoryId === parentId) {
+                        childCheckbox.disabled = false;
+                    } else {
+                        childCheckbox.checked = false;
+                        childCheckbox.disabled = true;
+                    }
+                });
+
+                lowerLevelCategoryCheckboxes.forEach(function (childCheckbox) {
+                    var parentId = childCheckbox.getAttribute('data-parent-id');
+                    var parentCheckbox = document.querySelector('.first-level-category-checkbox[data-category-id="' + parentId + '"]');
+                    if (parentCheckbox && parentCheckbox.checked) {
+                        childCheckbox.disabled = false;
+                    } else {
+                        childCheckbox.checked = false;
+                        childCheckbox.disabled = true;
+                    }
+                });
+            }
+
+            rootCategoryCheckboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    updateCategoryAvailability();
+                    updateSelectedCategoriesList();
+                });
+            });
+
+            firstLevelCategoryCheckboxes.forEach(function (checkbox) {
+                checkbox.addEventListener('change', function () {
+                    updateCategoryAvailability();
+                    updateSelectedCategoriesList();
+                });
+            });
+
+            function updateSelectedCategoriesList() {
+                selectedCategoriesList.innerHTML = '';
+
+                categoryCheckboxes.forEach(function (checkbox) {
+                    if (checkbox.checked) {
+                        var categoryName = checkbox.getAttribute('data-category-name');
+                        var listItem = document.createElement('li');
+                        listItem.textContent = categoryName;
+                        selectedCategoriesList.appendChild(listItem);
+                    }
+                });
+            }
+
+
+            updateCategoryAvailability();
+            updateSelectedCategoriesList();
+        });
+
+
+
+        function toggleMaterialCard() {
+            var materialCard = document.getElementById('materialCard');
+            var categoryCard = document.getElementById('categoryCard');
+
+            if (!categoryCard.classList.contains('d-none')) {
+                categoryCard.classList.add('d-none');
+            }
+
+            materialCard.classList.toggle('d-none');
+        }
+        function toggleCategoryCard() {
+            var materialCard = document.getElementById('materialCard');
+            var categoryCard = document.getElementById('categoryCard');
+
+            if (!materialCard.classList.contains('d-none')) {
+                materialCard.classList.add('d-none');
+            }
+
+            categoryCard.classList.toggle('d-none');
+        }
+    </script>
+}
+
+
+@* @for (int i = 0; i < Model.ProductViewModel.Categories.Count; i++)
+{
+    <div class="form-check">
+        <input type="hidden" asp-for="@Model.ProductViewModel.Categories[i].CategoryId" />
+        <input asp-for="ProductViewModel.Categories[i].IsSelected" class="form-check-input category-checkbox" data-category-name="@Model.ProductViewModel.Categories[i].CategoryName" type="checkbox" />
+        <label class="form-check-label">@Model.ProductViewModel.Categories[i].CategoryName</label>
+    </div>
+} *@

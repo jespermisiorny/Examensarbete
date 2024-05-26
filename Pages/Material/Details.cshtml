@@ -1,0 +1,83 @@
+﻿@page
+@model Examensarbete.Pages.Material.DetailsModel
+
+@{
+    ViewData["Title"] = "Details";
+    ViewData["IsAdminSection"] = true;
+
+}
+
+<div class="mt-3 mb-3">
+    <h2>Detaljerad översikt av Material</h2>
+</div>
+<div>
+    <hr />
+    <dl class="row">
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.Type)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.Type)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.DefaultProductionProcess)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.DefaultProductionProcess)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.EFMaterialNew)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.EFMaterialNew)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.EFProductionProcess)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.EFProductionProcess)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.EFEoLIncineration)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.EFEoLIncineration)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.EFEoLRecycling)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.EFEoLRecycling)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.RecycledContentInMaterial)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.RecycledContentInMaterial)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.EFMaterialRecycled)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.EFMaterialRecycled)
+        </dd>
+        <dt class="col-sm-4">
+            @Html.DisplayNameFor(model => model.Material.RecyclingRateAtEoL)
+        </dt>
+        <dd class="col-sm-8">
+            @Html.DisplayFor(model => model.Material.RecyclingRateAtEoL)
+        </dd>
+    </dl>
+</div>
+
+<div class="d-flex align-items-center">
+    <a class="btn btn-primary me-2" asp-page="./Edit" asp-route-id="@Model.Material.Id">Ändra</a>
+    <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Material.Id" onsubmit="return confirm('Är du säker på att du vill ta bort detta material?')">
+        <button class="btn btn-danger" type="submit">
+            Ta bort
+        </button>
+    </form>
+</div>
+<div class="mt-3">
+    <a asp-page="./Index">Back to List</a>
+</div>

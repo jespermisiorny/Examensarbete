@@ -1,0 +1,96 @@
+﻿<!DOCTYPE html>
+<html lang="sv-se">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Examensarbete</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/Klimatverktyg.styles.css" asp-append-version="true" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700;900&family=Open+Sans:ital@0;1&display=swap" rel="stylesheet">
+</head>
+<body>
+    <header>
+        <div class="container">
+            <div class="top-content">
+                <div class="logo-container">
+                    <img src="~/img/rs_logo_rod.jpg" alt="Logotype" />
+                </div>
+                <div class="title-container">
+                    <h1>Examensarbete</h1>
+                </div>
+                <div class="additional-text">
+                    <p>Hej, @User.Identity?.Name!</p>
+                </div>
+            </div>
+        </div>
+        <nav class="navbar">
+            <ul class="nav-list">
+                <li>
+                    <a asp-page="/Index">Startsida</a>
+                </li>
+                <li>
+                    <a asp-page="/Review">Orderdata</a>
+                </li>
+                <li>
+                    <a asp-page="/Uploads/UploadOrderData">Ladda upp</a>
+                </li>
+                <li>
+                    <a asp-page="/Admin">Admin</a>
+                </li>
+            </ul>
+        </nav>
+
+    </header>
+
+    @if (ViewData["IsAdminSection"] as bool? == true)
+    {
+        <div class="container">
+            <div class="row">
+                <nav class="col-md-2 d-none d-md-block sidebar admin-sidebar">
+                    <ul class="sidebar-menu">
+                        <li></li>
+                        <li><a asp-page="/Admin">Dashboard</a></li>
+                        <li><a asp-page="/Product/Index">Produkter</a></li>
+                        <li><a asp-page="/Material/Index">Material</a></li>
+                        <li><a asp-page="/Category/Index">Kategorier</a></li>
+                        <li><a asp-page="/Filter/Index">Filter</a></li>
+                    </ul>
+                </nav>
+                <main role="main" class="col-md-9 ml-sm-auto col-lg-10 px-4 mb-5">
+                    @RenderBody()
+                </main>
+            </div>
+        </div>
+    }
+
+    <main role="main" class="pb-3 mb-5">
+        @RenderBody()
+    </main>
+
+    @*     <footer class="footer border-top">
+    <div class="footer-top">
+    <div class="footer-box">
+    <h5>Klimatverktyget</h5>
+    </div>
+    <div class="footer-box">
+    <img src="~/img/logotype-bg.png" alt="Logotype" />
+    </div>
+    </div>
+    <div class="footer-bottom">
+    <p>&copy; 2024 - Region Sörmland</p>
+    </div>
+    </footer> *@
+
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+
+    @await RenderSectionAsync("Scripts", required: false)
+
+</body>
+</html>
+

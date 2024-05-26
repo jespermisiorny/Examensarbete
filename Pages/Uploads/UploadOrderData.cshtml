@@ -1,0 +1,260 @@
+﻿@page
+@model Examensarbete.Pages.Uploads.UploadOrderDataModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Ladda upp orderdata";
+    Layout = "~/Pages/Shared/_Layout.cshtml";
+
+    var successMessage = TempData["SuccessMessage"] as string;
+    var errorMessage = TempData["ErrorMessage"] as string;
+}
+
+<div class="container mt-5">
+
+    <!-- Orderdata formulär -->
+        @if (!Model.Success && Model.ShowUploadForm)
+        {
+            <div class="row justify-content-center">
+                <div class="col-md-6 text-center">
+                    <h1 class="mb-5 mt-5">Ladda upp orderdata</h1>
+
+                    <!-- Knappar för att ladda upp dokument -->
+                    <form method="post" enctype="multipart/form-data" asp-page-handler="UploadOrderData">
+                        <input type="file" name="fileUpload" />
+                        <button type="submit" class="btn btn-primary btn-block">Ladda upp</button>
+                    </form>
+                </div>
+            </div>
+        }
+
+
+    <!-- Error Alert -->
+    <div class="row justify-content-center">
+        <div class="col-md-4">
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert text-center mb-5" style="background-color: #F39B9B" role="alert">
+                    @Html.Raw(errorMessage)
+                </div>
+
+                <!-- Knapp för att resetta sidan -->
+                <div class="d-flex flex-column align-items-center">
+                    <a href="~/uploads/UploadOrderData" class="btn btn-primary mb-2">Ladda upp en ny fil</a>
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Tabell över uppladdad data -->
+    @if (Model.Success && Model.UploadedData.Any())
+    {
+        <!-- Rubrik -->
+        <div class="row justify-content-center mb-3">
+            <div class="col-md-6 text-center">
+                <h1>Senaste uppladdningen</h1>
+            </div>
+        </div>
+
+        <!-- Success Alert -->
+        var unmatchedCount = Model.UploadedData.Count(od => !od.ProductId.HasValue);
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="alert alert-info text-center mb-5" role="alert">
+                    <h5>Info</h5>
+                    @Html.Raw(successMessage) <!-- Detta meddelande ska alltid visas, oavsett vad scriptet skickar tillbaka -->
+                </div>
+
+                <div class="alert alert-warning text-center mb-5" role="alert" id="success-alert">
+
+                    @if (unmatchedCount > 1)
+                    {
+                        <div >
+                            <p class="mt-3">
+                                Det finns <span id="unmatched-count">@unmatchedCount</span> orderdata som inte kunde matchas mot någon produkt.<br />
+                                Vill du skapa ofullständiga produkter för alla?
+                            </p>
+                        </div>
+
+                        <!-- Skapa alla omatchade-knapp -->
+                        <div id="create-all-container">
+                            <form method="post" asp-page-handler="CreateAllIncompleteProducts" id="create-all-incomplete-products-form">
+                                <button type="submit" class="btn btn-sm btn-primary">Skapa produkter</button>
+                            </form>
+                        </div>
+
+                    }
+                </div>
+
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="alert text-center mb-5" role="alert" style="display: none;" id="message-container">
+                    <!-- Meddelande från javascriptet -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabell -->
+        <div class="card-body">
+            <table class="table" id="orderDataTable">
+                <thead>
+                    <tr>
+                        <th class="text-center">Id</th>
+                        <th class="text-center">Datum</th>
+                        <th class="text-center">Beskrivning</th>
+                        <th class="text-center">Artikelnummer</th>
+                        <th class="text-center">Matchad</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.UploadedData)
+                    {
+                        <tr data-product-id="@item.Id">
+                            <td class="text-center">@item.Id</td>
+                            <td class="text-center">@item.OrderDate.ToShortDateString()</td>
+                            <td>
+                                @if (item.ItemDescription.Length > 75)
+                                {
+                                    @Html.Raw(item.ItemDescription.Substring(0, 75) + "...")
+                                }
+                                else
+                                {
+                                    @item.ItemDescription
+                                }
+                            </td>
+                            <td class="text-center">@item.ArticleNumber</td>
+                            <td class="text-center match-cell">
+                                @if (item.ProductId.HasValue)
+                                {
+                                    <text>Ja</text>
+                                }
+                                else
+                                {
+                                    <form method="post" asp-page-handler="CreateIncompleteProduct" asp-route-id="@item.Id" data-ajax="true">
+                                        <button type="submit" class="btn btn-sm btn-primary">Skapa produkt</button>
+                                    </form>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Grupp av knappar -->
+        <div class="d-flex justify-content-end mt-5">
+            <a href="~/uploads/UploadOrderData" class="btn btn-primary me-2">Ladda upp en ny fil</a>
+            <a asp-page="../Review" class="btn btn-primary">Granska orderdata</a>
+        </div>
+    }
+</div>
+
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.js"></script>
+    <link href="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.css" rel="stylesheet">
+
+    <script>
+
+        // Uppdatera antalet omatchade orderdata.
+        function updateUnmatchedCountAndMessage() {
+            var unmatchedCountElement = $('#unmatched-count');
+            var unmatchedCount = parseInt(unmatchedCountElement.text());
+            var newCount = unmatchedCount - 1;
+
+            if (newCount > 0) {
+                unmatchedCountElement.text(newCount);
+            } else {
+                var messageContainer = $('#success-alert');
+                messageContainer.removeClass('alert-warning').addClass('alert-success');
+                messageContainer.html('<strong>Success!</strong><br/>Det finns inga omatchade orderdata.');
+                $('#unmatched-count').parent().remove();
+            }
+        }
+
+        // Success Callback för enskild produkt
+        function singleProductSuccess(data, form) {
+            var productRow = $(`tr[data-product-id="${data.id}"]`);
+            if (productRow.length) {
+                productRow.find('.match-cell').text('Ja');
+                productRow.find('form').remove();
+            }
+            var successMessage = `<div class="alert alert-success">${data.message}</div>`;
+            $('#message-container').html(successMessage).show();
+
+            updateUnmatchedCountAndMessage();
+        }
+
+        // Success Callback för alla produkter
+        function allProductsSuccess(data, form) {
+            var successMessage = `<div class="alert alert-success">${data.message}</div>`;
+            $('#success-alert').html(successMessage).show();
+            $('#create-all-container').hide();
+
+            $('.match-cell').each(function () {
+                var cell = $(this);
+                if (cell.find('form').length) {
+                    cell.text('Ja');
+                    cell.find('form').remove();
+                }
+            });
+            $('form[data-ajax="true"]').remove();
+            $('#message-container').html(successMessage).show();
+            updateUnmatchedCountAndMessage();
+
+        }
+
+        function handleFormSubmission(form, successCallback, errorCallback) {
+            form.on('submit', function (e) {
+                e.preventDefault();
+                var formData = new FormData(this);
+                var actionUrl = this.action;
+                var formMethod = this.method;
+
+                fetch(actionUrl, {
+                    method: formMethod,
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            successCallback(data, form);
+                        } else {
+                            errorCallback(data, form);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error during fetch operation:', error);
+                        var messageContainer = $('#message-container');
+                        messageContainer.html('Error while processing request.').show();
+                    });
+            });
+        }
+
+        $(document).ready(function () {
+            var table = $('#orderDataTable').DataTable({
+                "pageLength": 25
+            });
+
+            // Hantera enskilda produktskapande
+            handleFormSubmission($('form[data-ajax="true"]'), singleProductSuccess, function (data, form) {
+                // Error Callback för enskild produkt
+                $('#message-container').html(data.message).show();
+            });
+
+            // Hantera skapandet av alla omatchade produkter
+            handleFormSubmission($('#create-all-incomplete-products-form'), allProductsSuccess, function (data, form) {
+                // Error Callback för alla produkter
+                $('#success-alert').html(data.message).show();
+            });
+        });
+
+
+    </script>
+}
+
+

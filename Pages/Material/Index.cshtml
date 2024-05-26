@@ -1,0 +1,193 @@
+﻿@page
+@inject Examensarbete.Data.ApplicationDbContext _context;
+@model Examensarbete.Pages.Material.IndexModel
+
+@{
+    ViewData["Title"] = "Index";
+    ViewData["IsAdminSection"] = true;
+}
+<div class="mt-3 mb-3">
+    <h2>Material</h2>
+</div>
+
+<a class="btn btn-primary" asp-page="Create">Skapa nytt material</a>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card-body">
+            <table id="orderDataTable" class="table table-striped table-bordered">
+                <thead>
+                    <tr class="text-center">
+                        <th>Id</th>
+                        <th>Typ</th>
+                        <th>Förvald Produktionsprocess</th>
+                        <th>Åtgärd</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Material)
+                    {
+                        <tr>
+                            <td class="text-center">@item.Id</td>
+                            <td class="text-center">@item.Type</td>
+                            <td>
+                                @if (item.DefaultProductionProcess.Length > 30)
+                                {
+                                    @Html.Raw(item.DefaultProductionProcess.Substring(0, 30) + "...")
+                                }
+                                else
+                                {
+                                    @item.DefaultProductionProcess
+                                }
+                            </td>
+
+
+                            <td class="text-center"><a href="@Url.Page("./Details", new { id = item.Id })">Info</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+@section Scripts {
+
+    <link href="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $('#orderDataTable').DataTable({
+                "language": {
+                    url: '//cdn.datatables.net/plug-ins/2.0.3/i18n/sv-SE.json'
+                },
+                "pageLength": 20
+            });
+        });
+    </script>
+}
+
+@functions {
+
+    public static string FormatValue(decimal value, bool isPercentage)
+    {
+        // Ifall det är ett värde som skall visas som %, sätt då till true annars false.
+        return isPercentage ?
+            (value == Math.Floor(value) ? $"{value:0}" : $"{value:0.0}") + "%" :
+            value.ToString("0.####");
+    }
+}
+
+
+
+                    @* <div class="info-box mt-5 mb-5">
+    <h3>Välkommen till vår Materialbas!</h3>
+    <p>
+        Denna databas är skräddarsydd för att stödja dig i att sammanställa noggrann och
+        detaljerad information om de material som används i våra inköpta produkter.
+        Varje gång en ny produkt köps in och ett nytt material introduceras, kan det läggas
+        till här för att säkerställa att vår databas alltid är aktuell och heltäckande.
+        Varje material i denna databas är noggrant dokumenterat med detaljer om dess egenskaper,
+        miljöpåverkan och relevans i förhållande till våra produkter. Denna information är avsedd
+        att användas som en pålitlig källa för att skapa rapporter och presentera insikter till
+        beslutsfattare.
+        <br />
+        <br />
+        Det gör det möjligt för oss att:
+        <ul>
+            <li>
+                Förstå och kommunicera miljöpåverkan av de material vi använder.
+            </li>
+            <li>
+                Identifiera möjligheter till förbättringar och mer hållbara val i framtida inköp.
+            </li>
+            <li>
+                Ge en helhetsbild av vårt materialanvändning till ledningen.
+            </li>
+        </ul>
+        Vi uppmuntrar dig att aktivt bidra till och utnyttja denna databas. Genom att säkerställa
+        att alla nya material som introduceras i våra inköpsprocesser är representerade här, bidrar
+        du till en rikare och mer informativ resurs för hela organisationen.
+        Tveka inte att lägga till nya material och uppdatera befintlig information för att hjälpa oss
+        att fortsätta ta välgrundade och ansvarsfulla beslut i vår organisation.
+    </p>
+    <a class="btn btn-primary" asp-page="/Material/Create">Skapa nytt material</a>
+</div> *@
+
+        @* <hr class="mb-5" />
+<table class="table-sm table-custom text-center">
+    <thead>
+        <tr>
+            <th>
+                Typ
+            </th>
+            <th>
+                Förvald Produktionsprocess
+            </th>
+            <th>
+                UF Material (nytt)
+            </th>
+            <th>
+                UF Produktionsprocess
+            </th>
+            <th>
+                UF EoL Förbränning
+            </th>
+            <th>
+                UF EoL återvinning
+            </th>
+            <th>
+                Återvunnet material i material
+            </th>
+            <th>
+                UF material (återvunnet)
+            </th>
+            <th>
+                Återvunningsgrad i EoL
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model.Material)
+        {
+            <tr>
+                <td>
+                    @Html.DisplayFor(modelItem => item.Type)
+                </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.DefaultProductionProcess)
+                </td>
+                <td>
+                    @FormatValue(item.EFMaterialNew, false)
+                </td>
+                <td>
+                    @FormatValue(item.EFProductionProcess, false)
+                </td>
+                <td>
+                    @FormatValue(item.EFEoLIncineration, false)
+                </td>
+                <td>
+                    @FormatValue(item.EFEoLRecycling, false)
+                </td>
+                <td>
+                    @FormatValue(item.RecycledContentInMaterial, true)
+                </td>
+                <td>
+                    @FormatValue(item.EFMaterialRecycled, false)
+                </td>
+                <td>
+                    @FormatValue(item.RecyclingRateAtEoL, true)
+                </td>
+                <td>
+                    <a asp-page="./Edit" asp-route-id="@item.Id">Redigera</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table> *@

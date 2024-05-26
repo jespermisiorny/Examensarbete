@@ -1,0 +1,39 @@
+﻿@page
+@model Examensarbete.Pages.Filter.EditModel
+
+@{
+    ViewData["Title"] = "Edit";
+    ViewData["IsAdminSection"] = true;
+
+}
+
+<div class="mt-3 mb-3">
+    <h2>Ändra Filter</h2>
+</div>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Filter.Id" />
+            <div class="form-group mb-4">
+                <label asp-for="Filter.Text" class="control-label"></label>
+                <input asp-for="Filter.Text" class="form-control" />
+                <span asp-validation-for="Filter.Text" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Spara" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-page="./Index">Back to List</a>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+}

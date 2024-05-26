@@ -1,0 +1,230 @@
+/* För Chrome, Safari, Edge och andra WebKit-baserade webblösare */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* För Firefox */
+input[type="number"] {
+    -moz-appearance: textfield;
+}
+
+html {
+    font-size: 14px;
+}
+
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+    position: relative;
+    min-height: 100%;
+}
+
+body {
+    margin-bottom: 100px;
+    font-family: 'Open Sans', sans-serif;
+    font-weight: 400;
+}
+
+.radio-group {
+    margin-bottom: 10px;
+}
+
+    .radio-group label {
+        margin-left: 5px;
+    }
+
+    .radio-group input[type="radio"] {
+        margin-top: 0;
+    }
+
+.bg-color {
+    background-color: #9D1458;
+}
+
+.top-content {
+    display: flex;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 0 20px;
+    background-color: #ffffff;
+}
+
+.logo-container {
+    max-width: 200px;
+    margin-right: 5px;
+}
+
+    .logo-container img {
+        max-width: 100%;
+        height: auto;
+    }
+
+.title-container {
+    margin-right: auto;
+    text-align: center;
+}
+
+.additional-text {
+    margin-left: auto;
+    text-align: right;
+}
+
+.navbar {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    background-color: #9D1458;
+    color: #ffffff;
+    padding: 0.5em 0;
+}
+
+.nav-list {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0;
+    margin: 0;
+    width: 100%;
+    list-style-type: none;
+}
+
+    .nav-list li {
+        display: inline;
+        margin: 0 10px;
+    }
+
+    .nav-list a {
+        color: #ffffff;
+        text-decoration: none;
+        padding: 0.5em 1em;
+        display: block;
+        position: relative;
+        font-weight: 500;
+        font-size: 20px;
+    }
+
+        .nav-list a::after {
+            content: '';
+            display: block;
+            width: 0;
+            height: 2px;
+            background: #ffffff;
+            transition: width;
+            position: absolute;
+            bottom: 7px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .nav-list a:hover::after,
+        .nav-list a:focus::after {
+            width: 75%;
+        }
+
+
+.admin-sidebar {
+    background-color: #ffffff;
+    color: #ddd;
+}
+
+.sidebar-menu {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+    .sidebar-menu li {
+        padding: 10px 0;
+        border-bottom: 1px solid #bbb;
+    }
+
+        .sidebar-menu li a {
+            color: #333333;
+            font-size: 13px;
+            font-weight: 700;
+            margin-left: 10px;
+            text-decoration: none;
+            display: block;
+            /*        transition: color 0.2s ease-in-out;*/
+        }
+
+            .sidebar-menu li a:hover {
+                color: #047CA5;
+            }
+
+.admin-content {
+    flex-grow: 1;
+    padding: 20px;
+}
+
+table {
+    font-size: 13px;
+}
+
+.footer {
+    background-color: #9D1458;
+    color: #ffffff;
+    padding: 20px 0;
+}
+
+.footer-top {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.footer-box {
+    margin: 0 20px;
+    text-align: center;
+    flex-basis: 5%;
+}
+
+.footer-bottom {
+    text-align: center;
+}
+
+.btn-primary {
+    background-color: #047CA5;
+    border-color: #047CA5;
+}
+
+    .btn-primary:hover {
+        background-color: #035C83;
+        border-color: #035C83;
+    }
+
+.btn-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+    .btn-stack .btn {
+        margin-bottom: 10px;
+    }
+
+#uploadForm > div {
+    margin-bottom: 15px;
+}
+
+#file-chosen {
+    min-height: 24px;
+    line-height: 24px;
+    display: block;
+}
+
+#submit-upload-btn {
+    display: none;
+    margin: 0 auto;
+}

@@ -156,8 +156,6 @@
     <link href="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.css" rel="stylesheet">
 
     <script>
-
-        // Uppdatera antalet omatchade orderdata.
         function updateUnmatchedCountAndMessage() {
             var unmatchedCountElement = $('#unmatched-count');
             var unmatchedCount = parseInt(unmatchedCountElement.text());
@@ -173,7 +171,6 @@
             }
         }
 
-        // Success Callback för enskild produkt
         function singleProductSuccess(data, form) {
             var productRow = $(`tr[data-product-id="${data.id}"]`);
             if (productRow.length) {
@@ -186,7 +183,6 @@
             updateUnmatchedCountAndMessage();
         }
 
-        // Success Callback för alla produkter
         function allProductsSuccess(data, form) {
             var successMessage = `<div class="alert alert-success">${data.message}</div>`;
             $('#success-alert').html(successMessage).show();
@@ -202,7 +198,6 @@
             $('form[data-ajax="true"]').remove();
             $('#message-container').html(successMessage).show();
             updateUnmatchedCountAndMessage();
-
         }
 
         function handleFormSubmission(form, successCallback, errorCallback) {
@@ -240,20 +235,14 @@
                 "pageLength": 25
             });
 
-            // Hantera enskilda produktskapande
             handleFormSubmission($('form[data-ajax="true"]'), singleProductSuccess, function (data, form) {
-                // Error Callback för enskild produkt
                 $('#message-container').html(data.message).show();
             });
 
-            // Hantera skapandet av alla omatchade produkter
             handleFormSubmission($('#create-all-incomplete-products-form'), allProductsSuccess, function (data, form) {
-                // Error Callback för alla produkter
                 $('#success-alert').html(data.message).show();
             });
         });
-
-
     </script>
 }
 

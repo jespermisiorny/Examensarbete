@@ -36,7 +36,13 @@ namespace Examensarbete.Services
             {
                 filePath = await SaveUploadedFile(fileUpload);
                 var orders = await Task.Run(() => ReadOrdersFromFile(filePath));
-                var nonDuplicateOrders = RemoveDuplicates(orders);
+                var nonDuplicateOrders = await RemoveDuplicates(orders);
+
+                if (nonDuplicateOrders.Count == 0)
+                {
+                    return new ImportResultDTO { ErrorMessage = "Inga nya poster att lägga till. Alla rader är dubbletter." };
+                }
+
                 await MatchOrdersToProducts(nonDuplicateOrders);
 
                 _context.OrderData.AddRange(nonDuplicateOrders);
@@ -70,6 +76,14 @@ namespace Examensarbete.Services
             return validFileExtensions.Any(ext => fileName.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
         }
 
+        public async Task<List<OrderData>> GetRecentlyUploadedOrdersAsync(int numberOfRecords)
+        {
+            return await _context.OrderData
+                .OrderByDescending(od => od.Id)
+                .Take(numberOfRecords)
+                .ToListAsync();
+        }
+
         private async Task<List<OrderData>> ReadOrdersFromFile(string filePath)
         {
             var orders = new List<OrderData>();
@@ -87,12 +101,18 @@ namespace Examensarbete.Services
             return orders;
         }
 
-        private List<OrderData> RemoveDuplicates(List<OrderData> orders)
+        private async Task<List<OrderData>> RemoveDuplicates(List<OrderData> orders)
         {
-            return orders
-                .GroupBy(o => new { o.OrderDate, o.ArticleNumber, o.ConfirmedQuantity })
-                .Select(g => g.First())
+            var existingOrders = await _context.OrderData.ToListAsync();
+
+            var nonDuplicateOrders = orders
+                .Where(order => !existingOrders.Any(existing =>
+                    existing.OrderDate == order.OrderDate &&
+                    existing.ArticleNumber == order.ArticleNumber &&
+                    existing.ConfirmedQuantity == order.ConfirmedQuantity))
                 .ToList();
+
+            return nonDuplicateOrders;
         }
 
         private async Task MatchOrdersToProducts(List<OrderData> orders)
@@ -126,12 +146,6 @@ namespace Examensarbete.Services
 
                 var unmatchedOrderData = simpleUploadedData
                     .Where(od => !_context.Products.Any(p => p.ArticleNumber == od.ArticleNumber))
-                    .Select(od => new Product
-                    {
-                        Name = od.ItemDescription,
-                        ArticleNumber = od.ArticleNumber,
-                        IsIncomplete = true
-                    })
                     .ToList();
 
                 if (!unmatchedOrderData.Any())
@@ -139,7 +153,16 @@ namespace Examensarbete.Services
                     return new CreateIncompleteProductsResultDTO { ErrorMessage = "Inga omatchade orderdata hittades för skapande av nya produkter." };
                 }
 
-                await _productService.CreateProductsAsync(unmatchedOrderData);
+                foreach (var orderData in unmatchedOrderData)
+                {
+                    var newProduct = new Product
+                    {
+                        Name = orderData.ItemDescription,
+                        ArticleNumber = orderData.ArticleNumber,
+                        IsIncomplete = true
+                    };
+                    await _productService.CreateProductAsync(newProduct);
+                }
 
                 return new CreateIncompleteProductsResultDTO { ProductsCreated = unmatchedOrderData.Count };
             }
@@ -148,6 +171,7 @@ namespace Examensarbete.Services
                 return new CreateIncompleteProductsResultDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av ofullständiga produkter: {ex.Message}" };
             }
         }
+
 
         public async Task<ImportResultDTO> ImportOrderDataAsync(IFormFile fileUpload)
         {

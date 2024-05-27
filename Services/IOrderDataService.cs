@@ -9,6 +9,7 @@ namespace Examensarbete.Services
         Task<IEnumerable<OrderData>> RetrieveUnmatchedOrders();
         Task<CreateIncompleteProductsResultDTO> CreateAllIncompleteProducts(string jsonData);
         Task<ImportResultDTO> ProcessUploadedFileAsync(IFormFile fileUpload);
+        Task<List<OrderData>> GetRecentlyUploadedOrdersAsync(int numberOfRecords);
 
     }
 }

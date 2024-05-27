@@ -17,15 +17,15 @@ namespace Examensarbete.Models
         public string? ArticleNumber { get; set; } // Artikelnummer
         public string? SupplierName { get; set; } // Leverantörsnamn
         public string? UnitType { get; set; } // Enhetstyp
-        public int ConfirmedQuantity { get; set; } // Kvitterad
-        public decimal Price { get; set; } // Pris
-        public decimal ConfirmedNetAmount { get; set; } // Kvitterat nettobelopp
+        public int? ConfirmedQuantity { get; set; } // Kvitterad
+        public decimal? Price { get; set; } // Pris
+        public decimal? ConfirmedNetAmount { get; set; } // Kvitterat nettobelopp
         public string? Account { get; set; } // Konto
         public string? CostCenter { get; set; } // Kostnadsställe
         public string? Organization { get; set; } // Organisation
 
         public int? ProductId { get; set; }
-        public virtual Product Product { get; set; }
+        public virtual Product? Product { get; set; }
 
     }
 }

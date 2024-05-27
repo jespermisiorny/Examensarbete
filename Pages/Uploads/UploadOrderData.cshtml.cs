@@ -1,4 +1,5 @@
 using ClosedXML.Excel;
+using DocumentFormat.OpenXml.InkML;
 using Examensarbete.Data;
 using Examensarbete.DTO;
 using Examensarbete.Models;
@@ -16,7 +17,6 @@ namespace Examensarbete.Pages.Uploads
     {
         private readonly IOrderDataService _orderDataService;
         private readonly IProductService _productService;
-
         public UploadOrderDataModel(IOrderDataService orderDataService, IProductService productService)
         {
             _orderDataService = orderDataService;
@@ -39,12 +39,17 @@ namespace Examensarbete.Pages.Uploads
             if (!string.IsNullOrEmpty(result.ErrorMessage))
             {
                 SetMessage(false, result.ErrorMessage);
-                ShowUploadForm = false;
+                ShowUploadForm = true;
             }
             else
             {
                 SetMessage(true, $"{result.RecordsAdded} rader importerades.");
                 Success = true;
+                UploadedData = await _orderDataService.GetRecentlyUploadedOrdersAsync(result.RecordsAdded);
+
+                // Log for debugging purposes
+                Console.WriteLine($"Antal importerade rader: {result.RecordsAdded}");
+                Console.WriteLine($"Antal rader i UploadedData: {UploadedData.Count}");
             }
 
             return Page();

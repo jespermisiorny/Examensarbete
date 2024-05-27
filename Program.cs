@@ -27,8 +27,9 @@ namespace Examensarbete
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            // Registrera orderdata-service
+            // Registrera services
             builder.Services.AddScoped<IOrderDataService, OrderDataService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
 
             // Konfigurera lokaliseringsalternativ för att stödja svenska kulturer.
             var supportedCultures = new[] { "sv-SE" }; // Lägg till flera om behov finns.

@@ -36,12 +36,12 @@ namespace Examensarbete.Services
             {
                 filePath = await SaveUploadedFile(fileUpload);
                 var orders = await Task.Run(() => ReadOrdersFromFile(filePath));
-                var nonDuplicateOrders = await RemoveDuplicates(orders);
+                var nonDuplicateOrders = RemoveDuplicates(orders);
 
-                if (nonDuplicateOrders.Count == 0)
-                {
-                    return new ImportResultDTO { ErrorMessage = "Inga nya poster att lägga till. Alla rader är dubbletter." };
-                }
+                //if (nonDuplicateOrders.Count == 0)
+                //{
+                //    return new ImportResultDTO { ErrorMessage = "Inga nya poster att lägga till. Alla rader är dubbletter." };
+                //}
 
                 await MatchOrdersToProducts(nonDuplicateOrders);
 
@@ -64,16 +64,10 @@ namespace Examensarbete.Services
                     }
                     catch (Exception ex)
                     {
-                        _ = new ImportResultDTO { ErrorMessage = $"Kunde inte hantera den uppladdade filen på servern: {ex.Message}" };
+                        //_ = new ImportResultDTO { ErrorMessage = $"Kunde inte hantera den uppladdade filen på servern: {ex.Message}" };
                     }
                 }
             }
-        }
-
-        private bool IsValidFile(string fileName)
-        {
-            var validFileExtensions = new List<string> { ".xls", ".xlsx", ".xlsm", ".xlt", ".xltx", ".xltm" };
-            return validFileExtensions.Any(ext => fileName.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
         }
 
         public async Task<List<OrderData>> GetRecentlyUploadedOrdersAsync(int numberOfRecords)
@@ -82,6 +76,12 @@ namespace Examensarbete.Services
                 .OrderByDescending(od => od.Id)
                 .Take(numberOfRecords)
                 .ToListAsync();
+        }
+
+        private bool IsValidFile(string fileName)
+        {
+            var validFileExtensions = new List<string> { ".xls", ".xlsx", ".xlsm", ".xlt", ".xltx", ".xltm" };
+            return validFileExtensions.Any(ext => fileName.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
         }
 
         private async Task<List<OrderData>> ReadOrdersFromFile(string filePath)
@@ -101,18 +101,12 @@ namespace Examensarbete.Services
             return orders;
         }
 
-        private async Task<List<OrderData>> RemoveDuplicates(List<OrderData> orders)
+        private List<OrderData> RemoveDuplicates(List<OrderData> orders)
         {
-            var existingOrders = await _context.OrderData.ToListAsync();
-
-            var nonDuplicateOrders = orders
-                .Where(order => !existingOrders.Any(existing =>
-                    existing.OrderDate == order.OrderDate &&
-                    existing.ArticleNumber == order.ArticleNumber &&
-                    existing.ConfirmedQuantity == order.ConfirmedQuantity))
+            return orders
+                .GroupBy(o => new { o.OrderDate, o.ArticleNumber, o.ConfirmedQuantity })
+                .Select(g => g.First())
                 .ToList();
-
-            return nonDuplicateOrders;
         }
 
         private async Task MatchOrdersToProducts(List<OrderData> orders)
@@ -127,30 +121,26 @@ namespace Examensarbete.Services
 
         public async Task<IEnumerable<OrderData>> RetrieveUnmatchedOrders()
         {
-            var unmatchedOrders = await _context.OrderData
+            return await _context.OrderData
                 .Where(od => od.ProductId == null)
                 .ToListAsync();
-
-            return unmatchedOrders;
         }
 
-        public async Task<CreateIncompleteProductsResultDTO> CreateAllIncompleteProducts(string jsonData)
+        public async Task<CreateAllProductsDTO> CreateAllIncompleteProducts(string jsonData)
         {
             try
             {
                 var simpleUploadedData = JsonSerializer.Deserialize<List<SimpleOrderDataDTO>>(jsonData);
                 if (simpleUploadedData == null)
                 {
-                    return new CreateIncompleteProductsResultDTO { ErrorMessage = "Kunde inte tolka data från JSON-formatet." };
+                    return new CreateAllProductsDTO { ErrorMessage = "Kunde inte tolka data från JSON-formatet." };
                 }
 
-                var unmatchedOrderData = simpleUploadedData
-                    .Where(od => !_context.Products.Any(p => p.ArticleNumber == od.ArticleNumber))
-                    .ToList();
+                var unmatchedOrderData = simpleUploadedData.Where(od => !_context.Products.Any(p => p.ArticleNumber == od.ArticleNumber)).ToList();
 
                 if (!unmatchedOrderData.Any())
                 {
-                    return new CreateIncompleteProductsResultDTO { ErrorMessage = "Inga omatchade orderdata hittades för skapande av nya produkter." };
+                    return new CreateAllProductsDTO { ErrorMessage = "Inga omatchade orderdata hittades för skapande av nya produkter." };
                 }
 
                 foreach (var orderData in unmatchedOrderData)
@@ -161,14 +151,17 @@ namespace Examensarbete.Services
                         ArticleNumber = orderData.ArticleNumber,
                         IsIncomplete = true
                     };
-                    await _productService.CreateProductAsync(newProduct);
+
+                    _context.Products.Add(newProduct);
                 }
 
-                return new CreateIncompleteProductsResultDTO { ProductsCreated = unmatchedOrderData.Count };
+                await _context.SaveChangesAsync();
+
+                return new CreateAllProductsDTO { ProductsCreated = unmatchedOrderData.Count };
             }
             catch (Exception ex)
             {
-                return new CreateIncompleteProductsResultDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av ofullständiga produkter: {ex.Message}" };
+                return new CreateAllProductsDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av ofullständiga produkter: {ex.Message}" };
             }
         }
 
@@ -279,6 +272,45 @@ namespace Examensarbete.Services
                 return null;
             }
         }
+
+        public async Task<CreateOneProductDTO> CreateIncompleteProductAsync(int orderId)
+        {
+            try
+            {
+                var orderData = await _context.OrderData.FindAsync(orderId);
+                if (orderData == null)
+                {
+                    return new CreateOneProductDTO { ErrorMessage = "Ingen matchande orderdata hittades." };
+                }
+
+                if (_context.Products.Any(p => p.ArticleNumber == orderData.ArticleNumber))
+                {
+                    return new CreateOneProductDTO { ErrorMessage = "Produkten med detta artikelnummer finns redan." };
+                }
+
+                var newProduct = new Product
+                {
+                    Name = orderData.ItemDescription,
+                    ArticleNumber = orderData.ArticleNumber,
+                    IsIncomplete = true
+                };
+
+                _context.Products.Add(newProduct);
+                await _context.SaveChangesAsync();
+
+                // Update orderData with the new product
+                orderData.ProductId = newProduct.Id;
+                await _context.SaveChangesAsync();
+
+                return new CreateOneProductDTO { ProductsCreated = 1 };
+            }
+            catch (Exception ex)
+            {
+                return new CreateOneProductDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av produkten: {ex.Message}" };
+            }
+        }
+
+
 
     }
 }

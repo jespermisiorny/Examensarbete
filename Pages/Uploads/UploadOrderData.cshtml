@@ -12,21 +12,20 @@
 <div class="container mt-5">
 
     <!-- Orderdata formulär -->
-        @if (!Model.Success && Model.ShowUploadForm)
-        {
-            <div class="row justify-content-center">
-                <div class="col-md-6 text-center">
-                    <h1 class="mb-5 mt-5">Ladda upp orderdata</h1>
+    @if (!Model.Success && Model.ShowUploadForm)
+    {
+        <div class="row justify-content-center">
+            <div class="col-md-6 text-center">
+                <h1 class="mb-5 mt-5">Ladda upp orderdata</h1>
 
-                    <!-- Knappar för att ladda upp dokument -->
-                    <form method="post" enctype="multipart/form-data" asp-page-handler="UploadOrderData">
-                        <input type="file" name="fileUpload" />
-                        <button type="submit" class="btn btn-primary btn-block">Ladda upp</button>
-                    </form>
-                </div>
+                <!-- Knappar för att ladda upp dokument -->
+                <form method="post" enctype="multipart/form-data" asp-page-handler="UploadOrderData">
+                    <input type="file" name="fileUpload" />
+                    <button type="submit" class="btn btn-primary btn-block">Ladda upp</button>
+                </form>
             </div>
-        }
-
+        </div>
+    }
 
     <!-- Error Alert -->
     <div class="row justify-content-center">
@@ -65,10 +64,9 @@
                 </div>
 
                 <div class="alert alert-warning text-center mb-5" role="alert" id="success-alert">
-
                     @if (unmatchedCount > 1)
                     {
-                        <div >
+                        <div>
                             <p class="mt-3">
                                 Det finns <span id="unmatched-count">@unmatchedCount</span> orderdata som inte kunde matchas mot någon produkt.<br />
                                 Vill du skapa ofullständiga produkter för alla?
@@ -81,16 +79,7 @@
                                 <button type="submit" class="btn btn-sm btn-primary">Skapa produkter</button>
                             </form>
                         </div>
-
                     }
-                </div>
-
-            </div>
-        </div>
-        <div class="row justify-content-center">
-            <div class="col-md-4">
-                <div class="alert text-center mb-5" role="alert" style="display: none;" id="message-container">
-                    <!-- Meddelande från javascriptet -->
                 </div>
             </div>
         </div>
@@ -149,7 +138,6 @@
         </div>
     }
 </div>
-
 
 @section Scripts {
     <script src="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.js"></script>
@@ -245,5 +233,3 @@
         });
     </script>
 }
-
-

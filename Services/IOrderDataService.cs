@@ -7,7 +7,8 @@ namespace Examensarbete.Services
     {
         Task<ImportResultDTO> ImportOrderDataAsync(IFormFile fileUpload);
         Task<IEnumerable<OrderData>> RetrieveUnmatchedOrders();
-        Task<CreateIncompleteProductsResultDTO> CreateAllIncompleteProducts(string jsonData);
+        Task<CreateAllProductsDTO> CreateAllIncompleteProducts(string jsonData);
+        Task<CreateOneProductDTO> CreateIncompleteProductAsync(int orderId);
         Task<ImportResultDTO> ProcessUploadedFileAsync(IFormFile fileUpload);
         Task<List<OrderData>> GetRecentlyUploadedOrdersAsync(int numberOfRecords);
 

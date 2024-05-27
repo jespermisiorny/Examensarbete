@@ -1,13 +1,8 @@
-using ClosedXML.Excel;
-using DocumentFormat.OpenXml.InkML;
-using Examensarbete.Data;
 using Examensarbete.DTO;
 using Examensarbete.Models;
 using Examensarbete.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
-using System.Globalization;
 using System.Text.Json;
 using ProductModel = Examensarbete.Models.Product;
 
@@ -17,6 +12,7 @@ namespace Examensarbete.Pages.Uploads
     {
         private readonly IOrderDataService _orderDataService;
         private readonly IProductService _productService;
+
         public UploadOrderDataModel(IOrderDataService orderDataService, IProductService productService)
         {
             _orderDataService = orderDataService;
@@ -39,17 +35,17 @@ namespace Examensarbete.Pages.Uploads
             if (!string.IsNullOrEmpty(result.ErrorMessage))
             {
                 SetMessage(false, result.ErrorMessage);
-                ShowUploadForm = true;
+                ShowUploadForm = false;
             }
             else
             {
                 SetMessage(true, $"{result.RecordsAdded} rader importerades.");
                 Success = true;
-                UploadedData = await _orderDataService.GetRecentlyUploadedOrdersAsync(result.RecordsAdded);
 
-                // Log for debugging purposes
-                Console.WriteLine($"Antal importerade rader: {result.RecordsAdded}");
-                Console.WriteLine($"Antal rader i UploadedData: {UploadedData.Count}");
+                // Spara uppladdade data i sessionen
+                var uploadedData = await _orderDataService.GetRecentlyUploadedOrdersAsync(result.RecordsAdded);
+                UploadedData = uploadedData; // Lägg till detta för att sätta den nyligen uppladdade datan i modellen
+                HttpContext.Session.SetString("UploadedData", JsonSerializer.Serialize(uploadedData));
             }
 
             return Page();
@@ -57,31 +53,18 @@ namespace Examensarbete.Pages.Uploads
 
         public async Task<IActionResult> OnPostCreateIncompleteProductAsync(int id)
         {
-            var jsonData = HttpContext.Session.GetString("UploadedData");
-            if (string.IsNullOrEmpty(jsonData))
+            var result = await _orderDataService.CreateIncompleteProductAsync(id);
+            if (result.Success)
             {
-                return new JsonResult(new { success = false, message = "Sessionen har gått ut eller data finns inte." });
-            }
+                // Update the session
+                var uploadedData = await _orderDataService.GetRecentlyUploadedOrdersAsync(UploadedData.Count);
+                HttpContext.Session.SetString("UploadedData", JsonSerializer.Serialize(uploadedData));
 
-            var simpleUploadedData = JsonSerializer.Deserialize<List<SimpleOrderDataDTO>>(jsonData);
-            var orderData = simpleUploadedData.FirstOrDefault(od => od.Id == id);
-
-            if (orderData != null)
-            {
-                var newProduct = new ProductModel
-                {
-                    Name = orderData.ItemDescription,
-                    ArticleNumber = orderData.ArticleNumber,
-                    IsIncomplete = true
-                };
-
-                await _productService.CreateProductAsync(newProduct);
-
-                return new JsonResult(new { success = true, message = $"Produkt med artikelnummer {orderData.ArticleNumber} har skapats.", id });
+                return new JsonResult(new { success = true, message = "Produkt har skapats.", id = id });
             }
             else
             {
-                return new JsonResult(new { success = false, message = "Kunde inte skapa produkt, ingen matchande orderdata hittades." });
+                return new JsonResult(new { success = false, message = result.ErrorMessage });
             }
         }
 
@@ -101,8 +84,6 @@ namespace Examensarbete.Pages.Uploads
 
             return new JsonResult(new { success = true, message = $"{result.ProductsCreated} omatchade produkter har skapats." });
         }
-
-
 
         private void SetMessage(bool isSuccess, string message)
         {

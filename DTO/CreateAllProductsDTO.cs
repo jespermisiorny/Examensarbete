@@ -1,6 +1,6 @@
 ﻿namespace Examensarbete.DTO
 {
-    public class CreateIncompleteProductsResultDTO
+    public class CreateAllProductsDTO
     {
         public int ProductsCreated { get; set; }
         public string ErrorMessage { get; set; }

@@ -29,10 +29,10 @@
 
     <!-- Error Alert -->
     <div class="row justify-content-center">
-        <div class="col-md-4">
+        <div class="col-md-3">
             @if (!string.IsNullOrEmpty(errorMessage))
             {
-                <div class="alert text-center mb-5" style="background-color: #F39B9B" role="alert">
+                <div class="alert alert-danger text-center mb-5" role="alert">
                     @Html.Raw(errorMessage)
                 </div>
 
@@ -44,7 +44,6 @@
         </div>
     </div>
 
-    <!-- Tabell över uppladdad data -->
     @if (Model.Success && Model.UploadedData.Any())
     {
         <!-- Rubrik -->
@@ -55,36 +54,46 @@
         </div>
 
         <!-- Success Alert -->
-        var unmatchedCount = Model.UploadedData.Count(od => !od.ProductId.HasValue);
+        <div class="row justify-content-center">
+            <div class="col-md-3">
+                @if (!string.IsNullOrEmpty(successMessage))
+                {
+                    <div class="alert alert-success text-center mb-5" role="alert">
+                        @Html.Raw(successMessage)
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Info Alert -->
         <div class="row justify-content-center">
             <div class="col-md-4">
-                <div class="alert alert-info text-center mb-5" role="alert">
-                    <h5>Info</h5>
-                    @Html.Raw(successMessage) <!-- Detta meddelande ska alltid visas, oavsett vad scriptet skickar tillbaka -->
-                </div>
-
-                <div class="alert alert-warning text-center mb-5" role="alert" id="success-alert">
-                    @if (unmatchedCount > 1)
+                <div id="success-alert" class="alert alert-info text-center" role="alert">
+                    @{
+                        var unmatchedCount = Model.UploadedData.Count(od => !od.ProductId.HasValue);
+                    }
+                    @if (unmatchedCount > 0)
                     {
-                        <div>
+                        <div id="unmatched-message">
                             <p class="mt-3">
-                                Det finns <span id="unmatched-count">@unmatchedCount</span> orderdata som inte kunde matchas mot någon produkt.<br />
+                                Det finns <span id="unmatched-count">@unmatchedCount</span> rader som inte kunde matchas.
+                                <br />
                                 Vill du skapa ofullständiga produkter för alla?
                             </p>
-                        </div>
 
-                        <!-- Skapa alla omatchade-knapp -->
-                        <div id="create-all-container">
-                            <form method="post" asp-page-handler="CreateAllIncompleteProducts" id="create-all-incomplete-products-form">
-                                <button type="submit" class="btn btn-sm btn-primary">Skapa produkter</button>
-                            </form>
+                            <!-- Skapa alla omatchade-knapp -->
+                            <div id="create-all-container">
+                                <form method="post" asp-page-handler="CreateAllIncompleteProducts" id="create-all-incomplete-products-form">
+                                    <button type="submit" class="btn btn-sm btn-primary">Skapa alla produkter</button>
+                                </form>
+                            </div>
                         </div>
                     }
                 </div>
             </div>
         </div>
 
-        <!-- Tabell -->
+        <!-- Tabell över uppladdad data -->
         <div class="card-body">
             <table class="table" id="orderDataTable">
                 <thead>
@@ -132,10 +141,22 @@
         </div>
 
         <!-- Grupp av knappar -->
-        <div class="d-flex justify-content-end mt-5">
-            <a href="~/uploads/UploadOrderData" class="btn btn-primary me-2">Ladda upp en ny fil</a>
-            <a asp-page="../Review" class="btn btn-primary">Granska orderdata</a>
+        <div class="row mt-5">
+            <div class="d-flex justify-content-between w-100">
+
+                <!-- Knapp för att ladda upp ny fil, placerad till vänster -->
+                <div>
+                    <a href="~/uploads/UploadOrderData" class="btn btn-primary me-2">Ladda upp en ny fil</a>
+                </div>
+
+                <!-- Knappar för att navigera, placerade till höger -->
+                <div>
+                    <a asp-page="../Review" class="btn btn-primary">Gå till Orderdata</a>
+                    <a asp-page="/Product/Index" class="btn btn-primary">Gå till Produkter</a>
+                </div>
+            </div>
         </div>
+
     }
 </div>
 
@@ -144,17 +165,43 @@
     <link href="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.css" rel="stylesheet">
 
     <script>
+        var originalUnmatchedCount = 0;
+
+        $(document).ready(function () {
+            var unmatchedCountElement = $('#unmatched-count');
+            var unmatchedCount = parseInt(unmatchedCountElement.text());
+
+            if (!isNaN(unmatchedCount) && unmatchedCount > 0) {
+                originalUnmatchedCount = unmatchedCount;
+            }
+
+            var table = $('#orderDataTable').DataTable({
+                "pageLength": 25
+            });
+
+            handleFormSubmission($('form[data-ajax="true"]'), singleProductSuccess, function (data, form) {
+                $('#message-container').html(data.message).show();
+            });
+
+            handleFormSubmission($('#create-all-incomplete-products-form'), allProductsSuccess, function (data, form) {
+                $('#success-alert').html(data.message).show();
+            });
+        });
+
         function updateUnmatchedCountAndMessage() {
             var unmatchedCountElement = $('#unmatched-count');
             var unmatchedCount = parseInt(unmatchedCountElement.text());
+
+            if (isNaN(unmatchedCount)) {
+                unmatchedCount = originalUnmatchedCount;
+            }
+
             var newCount = unmatchedCount - 1;
 
             if (newCount > 0) {
                 unmatchedCountElement.text(newCount);
             } else {
                 var messageContainer = $('#success-alert');
-                messageContainer.removeClass('alert-warning').addClass('alert-success');
-                messageContainer.html('<strong>Success!</strong><br/>Det finns inga omatchade orderdata.');
                 $('#unmatched-count').parent().remove();
             }
         }
@@ -165,14 +212,11 @@
                 productRow.find('.match-cell').text('Ja');
                 productRow.find('form').remove();
             }
-            var successMessage = `<div class="alert alert-success">${data.message}</div>`;
-            $('#message-container').html(successMessage).show();
-
             updateUnmatchedCountAndMessage();
         }
 
         function allProductsSuccess(data, form) {
-            var successMessage = `<div class="alert alert-success">${data.message}</div>`;
+            var successMessage = `${data.message}`;
             $('#success-alert').html(successMessage).show();
             $('#create-all-container').hide();
 
@@ -217,19 +261,7 @@
                     });
             });
         }
-
-        $(document).ready(function () {
-            var table = $('#orderDataTable').DataTable({
-                "pageLength": 25
-            });
-
-            handleFormSubmission($('form[data-ajax="true"]'), singleProductSuccess, function (data, form) {
-                $('#message-container').html(data.message).show();
-            });
-
-            handleFormSubmission($('#create-all-incomplete-products-form'), allProductsSuccess, function (data, form) {
-                $('#success-alert').html(data.message).show();
-            });
-        });
     </script>
+
+
 }

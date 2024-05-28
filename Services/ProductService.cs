@@ -1,5 +1,6 @@
 ﻿using Examensarbete.Data;
 using Examensarbete.Models;
+using Examensarbete.Services.Interfaces;
 
 namespace Examensarbete.Services
 {

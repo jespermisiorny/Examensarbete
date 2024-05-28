@@ -83,7 +83,8 @@ body {
     width: 100%;
     display: flex;
     justify-content: center;
-    background-color: #9D1458;
+    /*background-color: #9D1458;*/ /* Färgen har har ersatts pga av distansering från originalprojekt*/
+    background-color: #24406C;
     color: #ffffff;
     padding: 0.5em 0;
 }
@@ -195,13 +196,13 @@ table {
 }
 
 .btn-primary {
-    background-color: #047CA5;
-    border-color: #047CA5;
+    background-color: #035C83;
+    border-color: #035C83;
 }
 
     .btn-primary:hover {
-        background-color: #035C83;
-        border-color: #035C83;
+        background-color: #24406C;
+        border-color: #24406C;
     }
 
 .btn-stack {

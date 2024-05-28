@@ -1,22 +1,18 @@
-using Examensarbete.DTO;
 using Examensarbete.Models;
-using Examensarbete.Services;
+using Examensarbete.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text.Json;
-using ProductModel = Examensarbete.Models.Product;
 
 namespace Examensarbete.Pages.Uploads
 {
     public class UploadOrderDataModel : PageModel
     {
         private readonly IOrderDataService _orderDataService;
-        private readonly IProductService _productService;
 
-        public UploadOrderDataModel(IOrderDataService orderDataService, IProductService productService)
+        public UploadOrderDataModel(IOrderDataService orderDataService)
         {
             _orderDataService = orderDataService;
-            _productService = productService;
         }
 
         [BindProperty]
@@ -39,12 +35,11 @@ namespace Examensarbete.Pages.Uploads
             }
             else
             {
-                SetMessage(true, $"{result.RecordsAdded} rader importerades.");
+                SetMessage(true, $"{result.RecordsAdded} rader importerades");
                 Success = true;
 
-                // Spara uppladdade data i sessionen
                 var uploadedData = await _orderDataService.GetRecentlyUploadedOrdersAsync(result.RecordsAdded);
-                UploadedData = uploadedData; // Lägg till detta för att sätta den nyligen uppladdade datan i modellen
+                UploadedData = uploadedData;
                 HttpContext.Session.SetString("UploadedData", JsonSerializer.Serialize(uploadedData));
             }
 
@@ -55,12 +50,11 @@ namespace Examensarbete.Pages.Uploads
         {
             var result = await _orderDataService.CreateIncompleteProductAsync(id);
             if (result.Success)
-            {
-                // Update the session
+            {                
                 var uploadedData = await _orderDataService.GetRecentlyUploadedOrdersAsync(UploadedData.Count);
                 HttpContext.Session.SetString("UploadedData", JsonSerializer.Serialize(uploadedData));
 
-                return new JsonResult(new { success = true, message = "Produkt har skapats.", id = id });
+                return new JsonResult(new { success = true, message = "Produkt skapad och matchad med orderdata.", id = id });
             }
             else
             {
@@ -82,10 +76,11 @@ namespace Examensarbete.Pages.Uploads
                 return new JsonResult(new { success = false, message = result.ErrorMessage });
             }
 
-            return new JsonResult(new { success = true, message = $"{result.ProductsCreated} omatchade produkter har skapats." });
+            return new JsonResult(new { success = true, message = $"Produktskapande lyckades!</br>{result.ProductsCreated} nya produkter har matchats." });
         }
 
-        private void SetMessage(bool isSuccess, string message)
+
+    private void SetMessage(bool isSuccess, string message)
         {
             var key = isSuccess ? "SuccessMessage" : "ErrorMessage";
             TempData[key] = message;

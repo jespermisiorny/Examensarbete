@@ -1,6 +1,6 @@
 ﻿using Examensarbete.Models;
 
-namespace Examensarbete.Services
+namespace Examensarbete.Services.Interfaces
 {
     public interface IProductService
     {

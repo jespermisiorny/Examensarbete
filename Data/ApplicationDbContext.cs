@@ -77,14 +77,14 @@ namespace Examensarbete.Data
                     .HasOne(od => od.Product)
                     .WithMany(p => p.OrderDatas)
                     .HasForeignKey(od => od.ProductId)
-                    .OnDelete(DeleteBehavior.SetNull);
+                    .OnDelete(DeleteBehavior.Restrict); // setNull
 
 
             // Kategorier
             modelBuilder.Entity<Category>()
-                .HasMany(c => c.SubCategories)
-                .WithOne(c => c.ParentCategory)
-                .HasForeignKey(c => c.ParentId);
+                    .HasMany(c => c.SubCategories)
+                    .WithOne(c => c.ParentCategory)
+                    .HasForeignKey(c => c.ParentId);
 
 
             // Decimalhantering

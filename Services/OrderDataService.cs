@@ -7,6 +7,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.Metadata;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using Examensarbete.Services.Interfaces;
 
 namespace Examensarbete.Services
 {
@@ -36,12 +37,10 @@ namespace Examensarbete.Services
             {
                 filePath = await SaveUploadedFile(fileUpload);
                 var orders = await Task.Run(() => ReadOrdersFromFile(filePath));
-                var nonDuplicateOrders = RemoveDuplicates(orders);
+                var nonDuplicateOrders = await RemoveDuplicatesAsync(orders);
 
-                //if (nonDuplicateOrders.Count == 0)
-                //{
-                //    return new ImportResultDTO { ErrorMessage = "Inga nya poster att lägga till. Alla rader är dubbletter." };
-                //}
+                if (!nonDuplicateOrders.Any())
+                    return new ImportResultDTO { ErrorMessage = $"Alla rader du försöker lägga till existerar redan i databasen." };
 
                 await MatchOrdersToProducts(nonDuplicateOrders);
 
@@ -101,11 +100,17 @@ namespace Examensarbete.Services
             return orders;
         }
 
-        private List<OrderData> RemoveDuplicates(List<OrderData> orders)
+        private async Task<List<OrderData>> RemoveDuplicatesAsync(List<OrderData> orders)
         {
+            var existingOrders = await _context.OrderData
+                .Select(o => new { o.OrderDate, o.ArticleNumber, o.ConfirmedQuantity })
+                .ToListAsync();
+
             return orders
-                .GroupBy(o => new { o.OrderDate, o.ArticleNumber, o.ConfirmedQuantity })
-                .Select(g => g.First())
+                .Where(order => !existingOrders.Any(existing =>
+                    existing.OrderDate == order.OrderDate &&
+                    existing.ArticleNumber == order.ArticleNumber &&
+                    existing.ConfirmedQuantity == order.ConfirmedQuantity))
                 .ToList();
         }
 
@@ -125,46 +130,6 @@ namespace Examensarbete.Services
                 .Where(od => od.ProductId == null)
                 .ToListAsync();
         }
-
-        public async Task<CreateAllProductsDTO> CreateAllIncompleteProducts(string jsonData)
-        {
-            try
-            {
-                var simpleUploadedData = JsonSerializer.Deserialize<List<SimpleOrderDataDTO>>(jsonData);
-                if (simpleUploadedData == null)
-                {
-                    return new CreateAllProductsDTO { ErrorMessage = "Kunde inte tolka data från JSON-formatet." };
-                }
-
-                var unmatchedOrderData = simpleUploadedData.Where(od => !_context.Products.Any(p => p.ArticleNumber == od.ArticleNumber)).ToList();
-
-                if (!unmatchedOrderData.Any())
-                {
-                    return new CreateAllProductsDTO { ErrorMessage = "Inga omatchade orderdata hittades för skapande av nya produkter." };
-                }
-
-                foreach (var orderData in unmatchedOrderData)
-                {
-                    var newProduct = new Product
-                    {
-                        Name = orderData.ItemDescription,
-                        ArticleNumber = orderData.ArticleNumber,
-                        IsIncomplete = true
-                    };
-
-                    _context.Products.Add(newProduct);
-                }
-
-                await _context.SaveChangesAsync();
-
-                return new CreateAllProductsDTO { ProductsCreated = unmatchedOrderData.Count };
-            }
-            catch (Exception ex)
-            {
-                return new CreateAllProductsDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av ofullständiga produkter: {ex.Message}" };
-            }
-        }
-
 
         public async Task<ImportResultDTO> ImportOrderDataAsync(IFormFile fileUpload)
         {
@@ -273,19 +238,14 @@ namespace Examensarbete.Services
             }
         }
 
-        public async Task<CreateOneProductDTO> CreateIncompleteProductAsync(int orderId)
+        public async Task<CreateProductDTO> CreateIncompleteProductAsync(int orderId)
         {
             try
             {
                 var orderData = await _context.OrderData.FindAsync(orderId);
                 if (orderData == null)
                 {
-                    return new CreateOneProductDTO { ErrorMessage = "Ingen matchande orderdata hittades." };
-                }
-
-                if (_context.Products.Any(p => p.ArticleNumber == orderData.ArticleNumber))
-                {
-                    return new CreateOneProductDTO { ErrorMessage = "Produkten med detta artikelnummer finns redan." };
+                    return new CreateProductDTO { ErrorMessage = "Ingen matchande orderdata hittades." };
                 }
 
                 var newProduct = new Product
@@ -295,18 +255,59 @@ namespace Examensarbete.Services
                     IsIncomplete = true
                 };
 
-                _context.Products.Add(newProduct);
-                await _context.SaveChangesAsync();
+                await _productService.CreateProductAsync(newProduct);
 
                 // Update orderData with the new product
                 orderData.ProductId = newProduct.Id;
                 await _context.SaveChangesAsync();
 
-                return new CreateOneProductDTO { ProductsCreated = 1 };
+                return new CreateProductDTO { ProductsCreated = 1 };
             }
             catch (Exception ex)
             {
-                return new CreateOneProductDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av produkten: {ex.Message}" };
+                return new CreateProductDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av produkten: {ex.Message}" };
+            }
+        }
+
+        public async Task<CreateProductDTO> CreateAllIncompleteProducts(string jsonData)
+        {
+            try
+            {
+                var simpleUploadedData = JsonSerializer.Deserialize<List<SimpleOrderDataDTO>>(jsonData);
+                if (simpleUploadedData == null)
+                {
+                    return new CreateProductDTO { ErrorMessage = "Kunde inte tolka data från JSON-formatet." };
+                }
+
+                var unmatchedOrderData = simpleUploadedData.Where(od => !_context.Products.Any(p => p.ArticleNumber == od.ArticleNumber)).ToList();
+
+                if (!unmatchedOrderData.Any())
+                {
+                    return new CreateProductDTO { ErrorMessage = "Inga omatchade orderdata hittades för skapande av nya produkter." };
+                }
+
+                foreach (var orderData in unmatchedOrderData)
+                {
+                    var newProduct = new Product
+                    {
+                        Name = orderData.ItemDescription,
+                        ArticleNumber = orderData.ArticleNumber,
+                        IsIncomplete = true
+                    };
+
+                    await _productService.CreateProductAsync(newProduct);
+                    //_context.Products.Add(newProduct);
+                    var matchedOrders = await _context.OrderData.Where(od => od.ArticleNumber == newProduct.ArticleNumber).ToListAsync();
+                    matchedOrders.ForEach(od => od.ProductId = newProduct.Id);
+                }
+
+                await _context.SaveChangesAsync();
+
+                return new CreateProductDTO { ProductsCreated = unmatchedOrderData.Count };
+            }
+            catch (Exception ex)
+            {
+                return new CreateProductDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av ofullständiga produkter: {ex.Message}" };
             }
         }
 

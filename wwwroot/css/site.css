@@ -55,15 +55,14 @@ body {
     display: flex;
     justify-content: flex-start;
     align-items: center;
-    padding: 0 20px;
+    padding: 10px;
     background-color: #ffffff;
 }
 
 .logo-container {
-    max-width: 200px;
+    max-width: 100px;
     margin-right: 5px;
 }
-
     .logo-container img {
         max-width: 100%;
         height: auto;
@@ -75,8 +74,10 @@ body {
 }
 
 .additional-text {
-    margin-left: auto;
     text-align: right;
+    display: flex;
+    align-items: center;
+    height: 100%;
 }
 
 .navbar {
@@ -229,3 +230,20 @@ table {
     display: none;
     margin: 0 auto;
 }
+
+
+.card-body .row {
+    height: 100%;
+}
+
+    .card-body .row .col-md-6 {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start; /* Ensure horizontal alignment to the start */
+    }
+    .card-body .row .col {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start; /* Ensure horizontal alignment to the start */
+    }
+

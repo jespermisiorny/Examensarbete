@@ -3,7 +3,7 @@
 
 @{
     ViewData["Title"] = "Edit";
-    Layout = "~/Pages/Shared/_Layout.cshtml";
+    ViewData["IsAdminSection"] = true;
 }
 
 <h1>Edit</h1>
@@ -20,20 +20,23 @@
                 <input asp-for="Category.Name" class="form-control" />
                 <span asp-validation-for="Category.Name" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Category.ParentId" class="control-label"></label>
                 <select asp-for="Category.ParentId" class="form-control" asp-items="ViewBag.ParentId"></select>
                 <span asp-validation-for="Category.ParentId" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Save" class="btn btn-primary" />
+            <div class="row">
+                <div class="col d-flex justify-content-between">
+                    <div>
+                        <a asp-page="./Index" class="btn btn-secondary">Gå tillbaka</a>
+                    </div>
+                    <div>
+                        <input type="submit" value="Spara" class="btn btn-primary" />
+                    </div>
+                </div>
             </div>
         </form>
     </div>
-</div>
-
-<div>
-    <a asp-page="./Index">Back to List</a>
 </div>
 
 @section Scripts {

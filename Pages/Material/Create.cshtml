@@ -55,21 +55,26 @@
                 <input asp-for="Material.EFMaterialRecycled" class="form-control" />
                 <span asp-validation-for="Material.EFMaterialRecycled" class="text-danger"></span>
             </div>
-            <div class="form-group">
+            <div class="form-group mb-3">
                 <label asp-for="Material.RecyclingRateAtEoL" class="control-label"></label>
                 <input asp-for="Material.RecyclingRateAtEoL" class="form-control" />
                 <span asp-validation-for="Material.RecyclingRateAtEoL" class="text-danger"></span>
             </div>
-            <div class="form-group">
-                <input type="submit" value="Spara material" class="btn btn-primary" />
+            <div class="row">
+                <div class="col d-flex justify-content-between">
+                    <div>
+                        <a asp-page="./Index" class="btn btn-secondary">Gå tillbaka</a>
+                    </div>
+                    <div>
+                        <input type="submit" value="Spara" class="btn btn-primary" />
+                    </div>
+                </div>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-page="Index">Back to List</a>
-</div>
+
 
 @section Scripts {
     @{

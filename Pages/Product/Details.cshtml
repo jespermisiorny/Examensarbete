@@ -4,9 +4,7 @@
 @{
     ViewData["Title"] = "Produktdetaljer";
     ViewData["IsAdminSection"] = true;
-
 }
-
 
 <div class="mt-3 mb-2">
 
@@ -185,7 +183,6 @@
     }
 </style>
 
-
 <!-- Material modal -->
 <div class="modal fade" id="materialModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog">
@@ -195,7 +192,6 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-
                 <form method="post" asp-page-handler="UpdateMaterials">
                     <!-- Gömda inputs -->
                     <input type="hidden" asp-for="Product.Id" />
@@ -214,7 +210,6 @@
                         {
                             var material = Model.ProductMaterials[i];
                             <div class="existing-material-item">
-
                                 <!-- Material Dropdown-->
                                 <div class="row mb-1">
                                     <div class="col-md-9">
@@ -233,13 +228,11 @@
                                             }
                                         </select>
                                     </div>
-
                                     <!-- Ta bort-knapp -->
                                     <div class="d-flex align-items-center col-md-3">
                                         <button type="button" class="btn btn-danger btn-sm remove-material-button" data-material-id="@material.MaterialId">Ta bort</button>
                                     </div>
                                 </div>
-
                                 <!-- Procentandel -->
                                 <div class="col-md-3 mb-3">
                                     <div class="input-group">
@@ -277,27 +270,6 @@
                         <button type="submit" class="btn btn-primary">Spara ändringar</button>
                     </div>
                 </form>
-
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Kategorier modal -->
-<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">Ändra information</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <!-- Här ska content in -->
-                <p>Kategorier</p>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
-                <button type="button" class="btn btn-primary">Spara ändringar</button>
             </div>
         </div>
     </div>
@@ -326,7 +298,6 @@
                         <label for="productWeightPerUnit" class="form-label">Vikt per enhet</label>
                         <input type="text" class="form-control" id="productWeightPerUnit" asp-for="Product.WeightPerUnit" />
                     </div>
-
                     <div class="mb-3">
                         <label for="productPricePerUnit" class="form-label">Pris per enhet</label>
                         <input type="number" class="form-control decimal-input" id="productPricePerUnit" asp-for="Product.PricePerUnit" step="0.01" />
@@ -361,11 +332,79 @@
     </div>
 </div>
 
+<!-- Kategorier modal -->
+<div class="modal fade" id="categoryModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">Ändra kategorier</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" id="category-form" asp-page-handler="UpdateCategories">
+                    <input type="hidden" asp-for="Product.Id" />
+
+                    <!-- Befintliga kategorier -->
+                    <h6 class="fw-bold">Befintliga kategorier</h6>
+                    <div id="existing-categories-container">
+                        @foreach (var category in Model.ProductCategories)
+                        {
+                            <div class="existing-category-item" data-category-id="@category.Id">
+                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                    <span>@category.Name</span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <hr />
+                    <!-- Huvudkategorier -->
+                    <div class="mb-3">
+                        <label for="mainCategory" class="form-label fw-bold">Huvudkategori</label>
+                        <select id="mainCategory" class="form-control">
+                            <option value="">Välj huvudkategori</option>
+                            @foreach (var category in Model.MainCategories)
+                            {
+                                <option value="@category.Value">@category.Text</option>
+                            }
+                        </select>
+                    </div>
+
+                    <!-- Underkategorier -->
+                    <div class="mb-3">
+                        <label for="subCategory" class="form-label fw-bold">Underkategori</label>
+                        <select id="subCategory" class="form-control">
+                            <option value="">Välj underkategori</option>
+                        </select>
+                    </div>
+
+                    <!-- Under-underkategorier -->
+                    <div class="mb-3">
+                        <label for="subSubCategory" class="form-label fw-bold">Under-underkategori</label>
+                        <select id="subSubCategory" class="form-control">
+                            <option value="">Välj under-underkategori</option>
+                        </select>
+                    </div>
+
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
+                        <button type="submit" class="btn btn-primary" id="save-categories-button">Spara ändringar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 @section Scripts {
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const removedMaterialIds = [];
+            const mainCategorySelect = document.getElementById('mainCategory');
+            const subCategorySelect = document.getElementById('subCategory');
+            const subSubCategorySelect = document.getElementById('subSubCategory');
+            const saveCategoriesButton = document.getElementById('save-categories-button');
+            const categoryForm = document.getElementById('category-form');
 
             // Funktion för att hantera borttagning av material
             document.querySelectorAll('.remove-material-button').forEach(button => {
@@ -397,84 +436,256 @@
                 const newItem = document.createElement('div');
                 newItem.classList.add('new-material-item');
                 newItem.innerHTML = `
-                                    <div class="row mb-1">
-                                        <div class="col-md-9">
-                                            <select name="NewMaterials[${index}].MaterialId" class="form-control material-select">
-                                                <option value="">Välj material</option>
-                                                ${Array.from(document.querySelectorAll('#material-options option')).map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
-                                            </select>
-                                        </div>
-                                        <div class="d-flex align-items-center col-md-3">
-                                            <button type="button" class="btn btn-danger btn-sm remove-material-button" onclick="this.parentElement.parentElement.parentElement.remove()">Ta bort</button>
-                                        </div>
+                            <div class="row mb-1">
+                                <div class="col-md-9">
+                                    <select name="NewMaterials[${index}].MaterialId" class="form-control material-select">
+                                        <option value="">Välj material</option>
+                                        ${Array.from(document.querySelectorAll('#material-options option')).map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="d-flex align-items-center col-md-3">
+                                    <button type="button" class="btn btn-danger btn-sm remove-material-button" onclick="this.parentElement.parentElement.parentElement.remove()">Ta bort</button>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="input-group">
+                                    <input type="number" name="NewMaterials[${index}].Percentage" class="form-control material-percentage" placeholder="%" />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">%</span>
                                     </div>
-                                    <div class="col-md-3 mb-3">
-                                        <div class="input-group">
-                                            <input type="number" name="NewMaterials[${index}].Percentage" class="form-control material-percentage" placeholder="%" />
-                                            <div class="input-group-append">
-                                                <span class="input-group-text">%</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                `;
+                                </div>
+                            </div>
+                        `;
                 container.appendChild(newItem);
+            });
+
+            // Funktion för att hämta underkategorier när en huvudkategori väljs
+            mainCategorySelect.addEventListener('change', function () {
+                const mainCategoryId = this.value;
+                subCategorySelect.innerHTML = '<option value="">Välj underkategori</option>';
+                subSubCategorySelect.innerHTML = '<option value="">Välj under-underkategori</option>';
+
+                if (mainCategoryId) {
+                    fetch(`/api/categories/subcategories/${mainCategoryId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data && data.$values && Array.isArray(data.$values)) {
+                                data.$values.forEach(subCategory => {
+                                    const option = document.createElement('option');
+                                    option.value = subCategory.id;
+                                    option.text = subCategory.name;
+                                    subCategorySelect.appendChild(option);
+                                });
+                            } else {
+                                console.error('Expected an array but got:', data);
+                            }
+                        })
+                        .catch(error => console.error('Error fetching subcategories:', error));
+                }
+            });
+
+            // Funktion för att hämta under-underkategorier när en underkategori väljs
+            subCategorySelect.addEventListener('change', function () {
+                const subCategoryId = this.value;
+                subSubCategorySelect.innerHTML = '<option value="">Välj under-underkategori</option>';
+
+                if (subCategoryId) {
+                    fetch(`/api/categories/subcategories/${subCategoryId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data && data.$values && Array.isArray(data.$values)) {
+                                data.$values.forEach(subSubCategory => {
+                                    const option = document.createElement('option');
+                                    option.value = subSubCategory.id;
+                                    option.text = subSubCategory.name;
+                                    subSubCategorySelect.appendChild(option);
+                                });
+                            } else {
+                                console.error('Expected an array but got:', data);
+                            }
+                        })
+                        .catch(error => console.error('Error fetching sub-subcategories:', error));
+                }
+            });
+
+            // Hantera spara-knappen och visa bekräftelsedialog
+            saveCategoriesButton.addEventListener('click', function () {
+                if (confirm('Vill du verkligen ändra kategorier för denna produkt?')) {
+                    const addedCategoryIds = [
+                        document.getElementById('mainCategory').value,
+                        document.getElementById('subCategory').value,
+                        document.getElementById('subSubCategory').value
+                    ].filter(id => id).join(',');
+
+                    const addedCategoryIdsInput = document.createElement('input');
+                    addedCategoryIdsInput.type = 'hidden';
+                    addedCategoryIdsInput.name = 'addedCategoryIds';
+                    addedCategoryIdsInput.value = addedCategoryIds;
+                    categoryForm.appendChild(addedCategoryIdsInput);
+
+                    // Kontrollera att värdet i inputfältet uppdateras korrekt.
+                    console.log('Added Category Ids:', addedCategoryIdsInput.value);
+
+                    categoryForm.submit();
+                }
             });
         });
     </script>
 }
 
-@* <form method="post" asp-page-handler="UpdateMaterials">
-    <div class="modal-body">
-        <input type="hidden" asp-for="Product.Id" />
-        <input type="hidden" name="RemovedMaterialIds" id="removedMaterialsList" />
+@* @section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const removedMaterialIds = [];
+            const mainCategorySelect = document.getElementById('mainCategory');
+            const subCategorySelect = document.getElementById('subCategory');
+            const subSubCategorySelect = document.getElementById('subSubCategory');
+            const saveCategoriesButton = document.getElementById('save-categories-button');
+            const categoryForm = document.getElementById('category-form');
 
-        <!-- Existerande Material -->
-        <h6>Existerande material</h6>
-        <div id="existingMaterials">
-            @if (Model.ProductMaterials != null && Model.ProductMaterials.Any())
-            {
-                @foreach (var material in Model.ProductMaterials)
-                {
+            // Funktion för att hantera borttagning av material
+            document.querySelectorAll('.remove-material-button').forEach(button => {
+                button.addEventListener('click', function () {
+                    const materialId = parseInt(this.getAttribute('data-material-id'));
 
+                    if (materialId) {
+                        // Lägg till materialId till removedMaterialIds
+                        removedMaterialIds.push(materialId);
+
+                        // Uppdatera värdet i det dolda inputfältet
+                        let removedMaterialIdsInput = document.getElementById('removed-material-ids');
+                        removedMaterialIdsInput.value = removedMaterialIds.join(',');
+
+                        // Kontrollera att värdet i inputfältet uppdateras korrekt.
+                        console.log('Updated removedMaterialIds:', removedMaterialIdsInput.value);
+
+                        // Ta bort material från DOM
+                        this.closest('.existing-material-item').remove();
+                    }
+                });
+            });
+
+            // Funktion för att lägga till nytt material
+            document.getElementById('add-material-button').addEventListener('click', function () {
+                const container = document.getElementById('new-materials-container');
+
+                const index = container.querySelectorAll('.new-material-item').length;
+                const newItem = document.createElement('div');
+                newItem.classList.add('new-material-item');
+                newItem.innerHTML = `
+                            <div class="row mb-1">
+                                <div class="col-md-9">
+                                    <select name="NewMaterials[${index}].MaterialId" class="form-control material-select">
+                                        <option value="">Välj material</option>
+                                        ${Array.from(document.querySelectorAll('#material-options option')).map(opt => `<option value="${opt.value}">${opt.text}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="d-flex align-items-center col-md-3">
+                                    <button type="button" class="btn btn-danger btn-sm remove-material-button" onclick="this.parentElement.parentElement.parentElement.remove()">Ta bort</button>
+                                </div>
+                            </div>
+                            <div class="col-md-3 mb-3">
+                                <div class="input-group">
+                                    <input type="number" name="NewMaterials[${index}].Percentage" class="form-control material-percentage" placeholder="%" />
+                                    <div class="input-group-append">
+                                        <span class="input-group-text">%</span>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                container.appendChild(newItem);
+            });
+
+            // Funktion för att hämta underkategorier när en huvudkategori väljs
+            mainCategorySelect.addEventListener('change', function () {
+                const mainCategoryId = this.value;
+                subCategorySelect.innerHTML = '<option value="">Välj underkategori</option>';
+                subSubCategorySelect.innerHTML = '<option value="">Välj under-underkategori</option>';
+
+                if (mainCategoryId) {
+                    fetch(`/api/categories/subcategories/${mainCategoryId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data && data.$values && Array.isArray(data.$values)) {
+                                data.$values.forEach(subCategory => {
+                                    const option = document.createElement('option');
+                                    option.value = subCategory.id;
+                                    option.text = subCategory.name;
+                                    subCategorySelect.appendChild(option);
+                                });
+                            } else {
+                                console.error('Expected an array but got:', data);
+                            }
+                        })
+                        .catch(error => console.error('Error fetching subcategories:', error));
                 }
+            });
 
-                @for (int i = 0; i < Model.ProductMaterials.Count; i++)
-                {
-                    <div class="material-item">
-                        <select name="ProductMaterials[i].MaterialId"
-                                class="form-control mb-2 material-select" asp-items="@Model.MaterialOptions">
-                            <option value="">Välj material</option>
-                        </select>
-                        <input type="number" name="ProductMaterials[i].Percentage"
-                               class="form-control mb-1 material-percentage" />
-                        <button type="button" class="btn btn-danger btn-sm mb-2 remove-material-button"
-                                data-material-id="@Model.ProductMaterials[i].MaterialId">
-                            Ta bort
-                        </button>
-                    </div>
+            // Funktion för att hämta under-underkategorier när en underkategori väljs
+            subCategorySelect.addEventListener('change', function () {
+                const subCategoryId = this.value;
+                subSubCategorySelect.innerHTML = '<option value="">Välj under-underkategori</option>';
+
+                if (subCategoryId) {
+                    fetch(`/api/categories/subcategories/${subCategoryId}`)
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            if (data && data.$values && Array.isArray(data.$values)) {
+                                data.$values.forEach(subSubCategory => {
+                                    const option = document.createElement('option');
+                                    option.value = subSubCategory.id;
+                                    option.text = subSubCategory.name;
+                                    subSubCategorySelect.appendChild(option);
+                                });
+                            } else {
+                                console.error('Expected an array but got:', data);
+                            }
+                        })
+                        .catch(error => console.error('Error fetching sub-subcategories:', error));
                 }
-            }
-            else
-            {
-                <p>Inga material tillagda.</p>
-            }
-        </div>
+            });
 
+            // Hantera spara-knappen och visa bekräftelsedialog
+            saveCategoriesButton.addEventListener('click', function () {
+                if (confirm('Vill du verkligen ändra kategorier för denna produkt?')) {
+                    const addedCategoryIds = [
+                        mainCategorySelect.value,
+                        subCategorySelect.value,
+                        subSubCategorySelect.value
+                    ].filter(id => id).join(',');
 
-        <!-- Knapp för att lägga till nytt material -->
-        <button type="button" class="btn btn-secondary mb-2" id="addMaterialButton">Lägg till nytt material</button>
+                    const addedCategoryIdsInput = document.createElement('input');
+                    addedCategoryIdsInput.type = 'hidden';
+                    addedCategoryIdsInput.name = 'addedCategoryIds';
+                    addedCategoryIdsInput.value = addedCategoryIds;
+                    categoryForm.appendChild(addedCategoryIdsInput);
 
-        <!-- Förpackningsmaterial -->
-        <div class="packagingMaterialDiv">
-            <h6>Förpackningsmaterial</h6>
-            <select asp-for="Product.PackagingMaterialId" class="form-control" asp-items="Model.MaterialOptions">
-                <option value="">Välj förpackningsmaterial</option>
-            </select>
-        </div>
+                    // Kontrollera att värdet i inputfältet uppdateras korrekt.
+                    console.log('Added Category Ids:', addedCategoryIdsInput.value);
 
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
-            <button type="submit" class="btn btn-primary">Spara ändringar</button>
-        </div>
-    </div>
-</form> *@
+                    categoryForm.submit();
+                }
+            });
+        });
+    </script>
+} *@

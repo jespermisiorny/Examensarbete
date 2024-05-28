@@ -1,3 +1,4 @@
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Examensarbete.Data;
 using Examensarbete.Services;
 using Examensarbete.Services.Interfaces;
@@ -29,9 +30,10 @@ namespace Examensarbete
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
-            // Registrera services
+            // Registrera services och controllers
             builder.Services.AddScoped<IOrderDataService, OrderDataService>();
-            builder.Services.AddScoped<IProductService, ProductService>();
+            builder.Services.AddScoped<IProductService, ProductService>();       
+            builder.Services.AddControllers();
 
             // Undvik cykliska referenser under serialisering
             builder.Services.AddControllers().AddJsonOptions(options =>
@@ -40,9 +42,8 @@ namespace Examensarbete
                 options.JsonSerializerOptions.MaxDepth = 64;
             });
 
-
             // Konfigurera lokaliseringsalternativ för att stödja svenska kulturer.
-            var supportedCultures = new[] { "sv-SE" }; // Lägg till flera om behov finns.
+            var supportedCultures = new[] { "sv-SE" };
             var localizationOptions = new RequestLocalizationOptions()
                 .SetDefaultCulture(supportedCultures[0])
                 .AddSupportedCultures(supportedCultures)
@@ -77,16 +78,16 @@ namespace Examensarbete
             }
 
             // Konfigurera HTTP-pipeline för allmänna scenarier.
+            //app.UseAuthentication();
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseRouting();
             app.UseSession();
-            //app.UseAuthentication();
             app.UseRequestLocalization(localizationOptions);
             app.UseAuthorization();
+            app.MapControllers();
             app.MapRazorPages();
-
-            app.Run(); // Starta webbapplikationen.
+            app.Run(); 
         }
     }
 }

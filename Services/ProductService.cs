@@ -10,10 +10,12 @@ namespace Examensarbete.Services
     public class ProductService : IProductService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IMaterialService _materialService;
 
-        public ProductService(ApplicationDbContext context)
+        public ProductService(ApplicationDbContext context, IMaterialService materialService)
         {
             _context = context;
+            _materialService = materialService;
         }
 
 
@@ -70,84 +72,18 @@ namespace Examensarbete.Services
         // Material
         public async Task<List<SelectListItem>> GetMaterialOptionsAsync()
         {
-            var materials = await _context.Materials.ToListAsync();
-            return materials.Select(m => new SelectListItem
-            {
-                Value = m.Id.ToString(),
-                Text = m.Type
-            }).ToList();
+            return await _materialService.GetMaterialOptionsAsync();
         }
         public async Task<IList<MaterialViewModel>> GetProductMaterialsAsync(int productId)
         {
-            return await _context.ProductMaterials
-                .Where(pm => pm.ProductId == productId)
-                .Select(pm => new MaterialViewModel
-                {
-                    MaterialId = pm.MaterialId,
-                    MaterialName = pm.Material.Type,
-                    Percentage = pm.Percentage
-                }).ToListAsync();
+            return await _materialService.GetProductMaterialsAsync(productId);
         }
         public async Task UpdateMaterialsAsync(Product product, List<ProductMaterial> updatedMaterials, List<ProductMaterial> newMaterials, List<int> removedMaterialIds)
         {
-            // Hämta produkten från databasen
-            var productToUpdate = await _context.Products
-                .Include(p => p.ProductMaterials)
-                .FirstOrDefaultAsync(p => p.Id == product.Id);
-
-            if (productToUpdate == null)
-            {
-                throw new Exception("Produkten hittades inte.");
-            }
-
-            // Lägg till nya material
-            if (newMaterials != null)
-            {
-                foreach (var newMaterial in newMaterials)
-                {
-                    productToUpdate.ProductMaterials.Add(new ProductMaterial
-                    {
-                        ProductId = productToUpdate.Id,
-                        MaterialId = newMaterial.MaterialId,
-                        Percentage = newMaterial.Percentage
-                    });
-                }
-            }
-
-            // Uppdatera befintliga material
-            if (updatedMaterials != null)
-            {
-                foreach (var updatedMaterial in updatedMaterials)
-                {
-                    var existingMaterial = productToUpdate.ProductMaterials.FirstOrDefault(pm => pm.MaterialId == updatedMaterial.MaterialId);
-                    if (existingMaterial != null)
-                    {
-                        existingMaterial.Percentage = updatedMaterial.Percentage;
-                        existingMaterial.MaterialId = updatedMaterial.MaterialId;
-                    }
-                }
-            }
-
-            // Ta bort material
-            if (removedMaterialIds != null)
-            {
-                foreach (var materialId in removedMaterialIds)
-                {
-                    var materialToRemove = productToUpdate.ProductMaterials.FirstOrDefault(pm => pm.MaterialId == materialId);
-                    if (materialToRemove != null)
-                    {
-                        _context.ProductMaterials.Remove(materialToRemove);
-                    }
-                }
-            }
-
-            // Uppdatera förpackningsmaterial
-            productToUpdate.PackagingMaterialId = product.PackagingMaterialId;
-
-            await _context.SaveChangesAsync();
+            await _materialService.UpdateMaterialsAsync(product, updatedMaterials, newMaterials, removedMaterialIds);
         }
-
-
+        
+        
         // Kategorier
         public async Task<List<Category>> GetProductCategoriesAsync(int productId)
         {
@@ -247,3 +183,84 @@ namespace Examensarbete.Services
 
     }
 }
+
+
+
+//public async Task<List<SelectListItem>> GetMaterialOptionsAsync()
+//{
+//    var materials = await _context.Materials.ToListAsync();
+//    return materials.Select(m => new SelectListItem
+//    {
+//        Value = m.Id.ToString(),
+//        Text = m.Type
+//    }).ToList();
+//}
+//public async Task<IList<MaterialViewModel>> GetProductMaterialsAsync(int productId)
+//{
+//    return await _context.ProductMaterials
+//        .Where(pm => pm.ProductId == productId)
+//        .Select(pm => new MaterialViewModel
+//        {
+//            MaterialId = pm.MaterialId,
+//            MaterialName = pm.Material.Type,
+//            Percentage = pm.Percentage
+//        }).ToListAsync();
+//}
+//public async Task UpdateMaterialsAsync(Product product, List<ProductMaterial> updatedMaterials, List<ProductMaterial> newMaterials, List<int> removedMaterialIds)
+//{
+//    // Hämta produkten från databasen
+//    var productToUpdate = await _context.Products
+//        .Include(p => p.ProductMaterials)
+//        .FirstOrDefaultAsync(p => p.Id == product.Id);
+
+//    if (productToUpdate == null)
+//    {
+//        throw new Exception("Produkten hittades inte.");
+//    }
+
+//    // Lägg till nya material
+//    if (newMaterials != null)
+//    {
+//        foreach (var newMaterial in newMaterials)
+//        {
+//            productToUpdate.ProductMaterials.Add(new ProductMaterial
+//            {
+//                ProductId = productToUpdate.Id,
+//                MaterialId = newMaterial.MaterialId,
+//                Percentage = newMaterial.Percentage
+//            });
+//        }
+//    }
+
+//    // Uppdatera befintliga material
+//    if (updatedMaterials != null)
+//    {
+//        foreach (var updatedMaterial in updatedMaterials)
+//        {
+//            var existingMaterial = productToUpdate.ProductMaterials.FirstOrDefault(pm => pm.MaterialId == updatedMaterial.MaterialId);
+//            if (existingMaterial != null)
+//            {
+//                existingMaterial.Percentage = updatedMaterial.Percentage;
+//                existingMaterial.MaterialId = updatedMaterial.MaterialId;
+//            }
+//        }
+//    }
+
+//    // Ta bort material
+//    if (removedMaterialIds != null)
+//    {
+//        foreach (var materialId in removedMaterialIds)
+//        {
+//            var materialToRemove = productToUpdate.ProductMaterials.FirstOrDefault(pm => pm.MaterialId == materialId);
+//            if (materialToRemove != null)
+//            {
+//                _context.ProductMaterials.Remove(materialToRemove);
+//            }
+//        }
+//    }
+
+//    // Uppdatera förpackningsmaterial
+//    productToUpdate.PackagingMaterialId = product.PackagingMaterialId;
+
+//    await _context.SaveChangesAsync();
+//}

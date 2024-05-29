@@ -33,6 +33,8 @@ namespace Examensarbete
             // Registrera services och controllers
             builder.Services.AddScoped<IOrderDataService, OrderDataService>();
             builder.Services.AddScoped<IProductService, ProductService>();       
+            builder.Services.AddScoped<IMaterialService, MaterialService>();       
+            builder.Services.AddScoped<ICategoryService, CategoryService>();       
             builder.Services.AddControllers();
 
             // Undvik cykliska referenser under serialisering

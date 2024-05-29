@@ -19,7 +19,6 @@ namespace Examensarbete.Services
         {
             return await _context.Categories.FirstOrDefaultAsync(c => c.Id == id);
         }
-
         public async Task<Category> CreateCategoryAsync(Category category)
         {
             if (category == null)
@@ -32,7 +31,6 @@ namespace Examensarbete.Services
 
             return category;
         }
-
         public async Task<IEnumerable<Category>> CreateCategoriesAsync(IEnumerable<Category> categories)
         {
             if (categories == null)
@@ -45,7 +43,6 @@ namespace Examensarbete.Services
 
             return categories;
         }
-
         public async Task DeleteCategoryAsync(int categoryId)
         {
             var category = await _context.Categories.FindAsync(categoryId);
@@ -55,16 +52,16 @@ namespace Examensarbete.Services
                 await _context.SaveChangesAsync();
             }
         }
-
         public async Task UpdateCategoryAsync(Category category)
         {
             _context.Categories.Update(category);
             await _context.SaveChangesAsync();
         }
-
         public async Task<List<SelectListItem>> GetMainCategoriesAsync()
         {
-            var mainCategories = await _context.Categories.Where(c => c.ParentId == null).ToListAsync();
+            var mainCategories = await _context.Categories
+                .Where(c => c.ParentId == null)
+                .ToListAsync();
 
             return mainCategories.Select(c => new SelectListItem
             {
@@ -72,7 +69,6 @@ namespace Examensarbete.Services
                 Text = c.Name
             }).ToList();
         }
-
         public async Task<List<Category>> GetSubCategoriesAsync(int parentId)
         {
             var subCategories = await _context.Categories.Where(c => c.ParentId == parentId).ToListAsync();

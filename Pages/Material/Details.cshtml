@@ -2,87 +2,159 @@
 @model Examensarbete.Pages.Material.DetailsModel
 
 @{
-    ViewData["Title"] = "Details";
+    ViewData["Title"] = "Materialdetaljer";
     ViewData["IsAdminSection"] = true;
 
 }
 
 <div class="mt-3 mb-3">
-    <h2>Detaljerad översikt av Material</h2>
-</div>
-<div>
-    <hr />
-    <dl class="row">
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.Type)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.Type)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.DefaultProductionProcess)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.DefaultProductionProcess)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.EFMaterialNew)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.EFMaterialNew)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.EFProductionProcess)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.EFProductionProcess)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.EFEoLIncineration)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.EFEoLIncineration)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.EFEoLRecycling)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.EFEoLRecycling)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.RecycledContentInMaterial)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.RecycledContentInMaterial)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.EFMaterialRecycled)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.EFMaterialRecycled)
-        </dd>
-        <dt class="col-sm-4">
-            @Html.DisplayNameFor(model => model.Material.RecyclingRateAtEoL)
-        </dt>
-        <dd class="col-sm-8">
-            @Html.DisplayFor(model => model.Material.RecyclingRateAtEoL)
-        </dd>
-    </dl>
-</div>
+    <!-- Rubrik -->
+    <h4 class="mt-3 mb-3">@Model.Material.Type</h4>
 
-<!-- Knappar under cards-->
-<div class="row">
-    <div class="col d-flex justify-content-between">
-        <div>
-            <a asp-page="./Index" class="btn btn-secondary">Gå tillbaka</a>
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-baseline justify-content-start">
+                        <h4 class="card-title me-1">Information</h4>
+                        <a class="small text-primary" style="cursor:pointer; text-decoration: underline;" data-bs-toggle="modal" data-bs-target="#materialModal">Ändra</a>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 d-flex align-items-center">
+                            <ul>
+                                <li class="mb-1"><strong>Id: </strong>@Model.Material.Id</li>
+                                <li class="mb-1"><strong>Typ av material: </strong>@Model.Material.Type</li>
+                                <li class="mb-1"><strong>Förvald Produktionsprocess: <br /></strong>@Model.Material.DefaultProductionProcess</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div>
-            <a class="btn btn-primary me-2" asp-page="./Edit" asp-route-id="@Model.Material.Id">Ändra</a>
-            <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Material.Id" onsubmit="return confirm('Är du säker på att du vill ta bort detta material?')" class="d-inline">
-                <button class="btn btn-danger" type="submit">
-                    Ta bort
-                </button>
-            </form>
+
+        <div class="col-md-6">
+            <div class="card h-100">
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex align-items-baseline justify-content-start">
+                        <h4 class="card-title">Utsläpp i siffror</h4>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 d-flex align-items-center">
+                            <ul>
+                                <li class="mb-1"><strong>UF Material (Nytt): </strong>@Model.Material.EFMaterialNew.ToString("F3")</li>
+                                <li class="mb-1"><strong>UF Material (Återvunnet): </strong>@Model.Material.EFMaterialRecycled.ToString("F3")</li>
+                                <li class="mb-1"><strong>UF Produktionsprocess: </strong>@Model.Material.EFProductionProcess.ToString("F3")</li>
+                                <li class="mb-1"><strong>UF EoL Förbränning: </strong>@Model.Material.EFEoLIncineration.ToString("F3")</li>
+                                <li class="mb-1"><strong>UF EoL Återvinning: </strong>@Model.Material.EFEoLRecycling.ToString("F3")</li>
+                                <li class="mb-1"><strong>Återvunnet Material i Material: </strong>@Model.Material.RecycledContentInMaterial.ToString("F3")</li>
+                                <li><strong>Återvinningsgrad i EoL: </strong>@Model.Material.RecyclingRateAtEoL.ToString("F3")</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Knappar under cards-->
+    <div class="row">
+        <div class="col d-flex justify-content-between mt-2">
+            <div>
+                <a asp-page="./Index" class="btn btn-secondary">Gå tillbaka</a>
+            </div>
+            <div>
+                <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Material.Id" onsubmit="return confirm('Är du säker på att du vill ta bort detta material?')" class="d-inline">
+                    <button class="btn btn-danger" type="submit">
+                        Ta bort
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Material modal -->
+    <div class="modal fade" id="materialModal" tabindex="-1" aria-labelledby="materialModal" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="editModalLabel">Ändra material</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form method="post" asp-page-handler="Edit">
+                        <input type="hidden" asp-for="Material.Id" />
+                        <div class="row">
+                            <div class="col-md-12">
+                                <div class="form-group mb-2">
+                                    <label asp-for="Material.Type" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.Type" class="form-control" />
+                                    <span asp-validation-for="Material.Type" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group mb-2">
+                                    <label asp-for="Material.DefaultProductionProcess" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.DefaultProductionProcess" class="form-control" />
+                                    <span asp-validation-for="Material.DefaultProductionProcess" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label asp-for="Material.EFMaterialNew" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.EFMaterialNew" class="form-control" />
+                                    <span asp-validation-for="Material.EFMaterialNew" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label asp-for="Material.EFMaterialRecycled" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.EFMaterialRecycled" class="form-control" />
+                                    <span asp-validation-for="Material.EFMaterialRecycled" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label asp-for="Material.EFProductionProcess" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.EFProductionProcess" class="form-control" />
+                                    <span asp-validation-for="Material.EFProductionProcess" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label asp-for="Material.EFEoLIncineration" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.EFEoLIncineration" class="form-control" />
+                                    <span asp-validation-for="Material.EFEoLIncineration" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label asp-for="Material.EFEoLRecycling" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.EFEoLRecycling" class="form-control" />
+                                    <span asp-validation-for="Material.EFEoLRecycling" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group mb-2">
+                                    <label asp-for="Material.RecyclingRateAtEoL" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.RecyclingRateAtEoL" class="form-control" />
+                                    <span asp-validation-for="Material.RecyclingRateAtEoL" class="text-danger"></span>
+                                </div>
+                            </div>
+                            <div class="col-md-12">
+                                <div class="form-group mb-4">
+                                    <label asp-for="Material.RecycledContentInMaterial" class="control-label fw-bold"></label>
+                                    <input asp-for="Material.RecycledContentInMaterial" class="form-control" />
+                                    <span asp-validation-for="Material.RecycledContentInMaterial" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
+                            <button type="submit" class="btn btn-primary">Spara ändringar</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 </div>

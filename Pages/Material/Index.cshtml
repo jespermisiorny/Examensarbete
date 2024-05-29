@@ -9,8 +9,7 @@
 <div class="mt-3 mb-3">
     <h2>Material</h2>
 </div>
-
-<a class="btn btn-primary" asp-page="Create">Skapa nytt material</a>
+<a class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createMaterialModal">Skapa nytt material</a>
 
 <div class="row">
     <div class="col-md-12">
@@ -30,10 +29,10 @@
                         <tr>
                             <td class="text-center">@item.Id</td>
                             <td class="text-center">@item.Type</td>
-                            <td>
-                                @if (item.DefaultProductionProcess.Length > 30)
+                            <td class="text-center">
+                                @if (item.DefaultProductionProcess.Length > 45)
                                 {
-                                    @Html.Raw(item.DefaultProductionProcess.Substring(0, 30) + "...")
+                                    @Html.Raw(item.DefaultProductionProcess.Substring(0, 45) + "...")
                                 }
                                 else
                                 {
@@ -51,6 +50,90 @@
     </div>
 </div>
 
+<!-- Material Create Modal -->
+<div class="modal fade" id="createMaterialModal" tabindex="-1" aria-labelledby="createMaterialModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold" id="createMaterialModalLabel">Skapa nytt material</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form method="post" asp-page-handler="Create">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="form-group mb-2">
+                                <label asp-for="NewMaterial.Type" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.Type" class="form-control" />
+                                <span asp-validation-for="NewMaterial.Type" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group mb-2">
+                                <label asp-for="NewMaterial.DefaultProductionProcess" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.DefaultProductionProcess" class="form-control" />
+                                <span asp-validation-for="NewMaterial.DefaultProductionProcess" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <label asp-for="NewMaterial.EFMaterialNew" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.EFMaterialNew" class="form-control" />
+                                <span asp-validation-for="NewMaterial.EFMaterialNew" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <label asp-for="NewMaterial.EFMaterialRecycled" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.EFMaterialRecycled" class="form-control" />
+                                <span asp-validation-for="NewMaterial.EFMaterialRecycled" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <label asp-for="NewMaterial.EFProductionProcess" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.EFProductionProcess" class="form-control" />
+                                <span asp-validation-for="NewMaterial.EFProductionProcess" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <label asp-for="NewMaterial.EFEoLIncineration" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.EFEoLIncineration" class="form-control" />
+                                <span asp-validation-for="NewMaterial.EFEoLIncineration" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <label asp-for="NewMaterial.EFEoLRecycling" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.EFEoLRecycling" class="form-control" />
+                                <span asp-validation-for="NewMaterial.EFEoLRecycling" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-2">
+                                <label asp-for="NewMaterial.RecyclingRateAtEoL" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.RecyclingRateAtEoL" class="form-control" />
+                                <span asp-validation-for="NewMaterial.RecyclingRateAtEoL" class="text-danger"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="form-group mb-4">
+                                <label asp-for="NewMaterial.RecycledContentInMaterial" class="control-label fw-bold"></label>
+                                <input asp-for="NewMaterial.RecycledContentInMaterial" class="form-control" />
+                                <span asp-validation-for="NewMaterial.RecycledContentInMaterial" class="text-danger"></span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Stäng</button>
+                        <button type="submit" class="btn btn-primary">Skapa material</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
@@ -82,112 +165,3 @@
             value.ToString("0.####");
     }
 }
-
-
-
-                    @* <div class="info-box mt-5 mb-5">
-    <h3>Välkommen till vår Materialbas!</h3>
-    <p>
-        Denna databas är skräddarsydd för att stödja dig i att sammanställa noggrann och
-        detaljerad information om de material som används i våra inköpta produkter.
-        Varje gång en ny produkt köps in och ett nytt material introduceras, kan det läggas
-        till här för att säkerställa att vår databas alltid är aktuell och heltäckande.
-        Varje material i denna databas är noggrant dokumenterat med detaljer om dess egenskaper,
-        miljöpåverkan och relevans i förhållande till våra produkter. Denna information är avsedd
-        att användas som en pålitlig källa för att skapa rapporter och presentera insikter till
-        beslutsfattare.
-        <br />
-        <br />
-        Det gör det möjligt för oss att:
-        <ul>
-            <li>
-                Förstå och kommunicera miljöpåverkan av de material vi använder.
-            </li>
-            <li>
-                Identifiera möjligheter till förbättringar och mer hållbara val i framtida inköp.
-            </li>
-            <li>
-                Ge en helhetsbild av vårt materialanvändning till ledningen.
-            </li>
-        </ul>
-        Vi uppmuntrar dig att aktivt bidra till och utnyttja denna databas. Genom att säkerställa
-        att alla nya material som introduceras i våra inköpsprocesser är representerade här, bidrar
-        du till en rikare och mer informativ resurs för hela organisationen.
-        Tveka inte att lägga till nya material och uppdatera befintlig information för att hjälpa oss
-        att fortsätta ta välgrundade och ansvarsfulla beslut i vår organisation.
-    </p>
-    <a class="btn btn-primary" asp-page="/Material/Create">Skapa nytt material</a>
-</div> *@
-
-        @* <hr class="mb-5" />
-<table class="table-sm table-custom text-center">
-    <thead>
-        <tr>
-            <th>
-                Typ
-            </th>
-            <th>
-                Förvald Produktionsprocess
-            </th>
-            <th>
-                UF Material (nytt)
-            </th>
-            <th>
-                UF Produktionsprocess
-            </th>
-            <th>
-                UF EoL Förbränning
-            </th>
-            <th>
-                UF EoL återvinning
-            </th>
-            <th>
-                Återvunnet material i material
-            </th>
-            <th>
-                UF material (återvunnet)
-            </th>
-            <th>
-                Återvunningsgrad i EoL
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model.Material)
-        {
-            <tr>
-                <td>
-                    @Html.DisplayFor(modelItem => item.Type)
-                </td>
-                <td>
-                    @Html.DisplayFor(modelItem => item.DefaultProductionProcess)
-                </td>
-                <td>
-                    @FormatValue(item.EFMaterialNew, false)
-                </td>
-                <td>
-                    @FormatValue(item.EFProductionProcess, false)
-                </td>
-                <td>
-                    @FormatValue(item.EFEoLIncineration, false)
-                </td>
-                <td>
-                    @FormatValue(item.EFEoLRecycling, false)
-                </td>
-                <td>
-                    @FormatValue(item.RecycledContentInMaterial, true)
-                </td>
-                <td>
-                    @FormatValue(item.EFMaterialRecycled, false)
-                </td>
-                <td>
-                    @FormatValue(item.RecyclingRateAtEoL, true)
-                </td>
-                <td>
-                    <a asp-page="./Edit" asp-route-id="@item.Id">Redigera</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table> *@

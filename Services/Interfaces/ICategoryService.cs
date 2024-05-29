@@ -10,7 +10,6 @@ namespace Examensarbete.Services.Interfaces
         Task<IEnumerable<Category>> CreateCategoriesAsync(IEnumerable<Category> categories);
         Task DeleteCategoryAsync(int categoryId);
         Task UpdateCategoryAsync(Category category);
-
         Task<List<SelectListItem>> GetMainCategoriesAsync();
         Task<List<Category>> GetSubCategoriesAsync(int parentId);
     }

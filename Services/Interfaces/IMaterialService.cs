@@ -14,5 +14,6 @@ namespace Examensarbete.Services.Interfaces
         Task<List<SelectListItem>> GetMaterialOptionsAsync();
         Task<IList<MaterialViewModel>> GetProductMaterialsAsync(int productId);
         Task UpdateMaterialsAsync(Product product, List<ProductMaterial> updatedMaterials, List<ProductMaterial> newMaterials, List<int> removedMaterialIds);
+        Task<List<Material>> GetAllMaterialsAsync();
     }
 }

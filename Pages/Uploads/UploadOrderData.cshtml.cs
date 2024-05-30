@@ -3,6 +3,7 @@ using Examensarbete.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Text.Json;
+using OrderDataModel = Examensarbete.Models.OrderData;
 
 namespace Examensarbete.Pages.Uploads
 {
@@ -16,7 +17,7 @@ namespace Examensarbete.Pages.Uploads
         }
 
         [BindProperty]
-        public List<OrderData> UploadedData { get; set; } = new List<OrderData>();
+        public List<OrderDataModel> UploadedData { get; set; } = new List<OrderDataModel>();
         public bool Success { get; set; }
         public bool ShowUploadForm { get; set; } = true;
 

@@ -1,0 +1,141 @@
+﻿@page "{id:int}"
+@model DetailsModel
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    ViewData["Title"] = "Orderdetaljer";
+    var tokens = Antiforgery.GetAndStoreTokens(HttpContext);
+}
+
+<div class="container">
+
+    <div class="mt-3 mb-3">
+        <!-- Rubrik -->
+        <h3 class="mt-3 mb-3 text-center">Order-ID: @Model.OrderData.Id</h3>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-baseline justify-content-start">
+                            <h4 class="card-title">Orderdetaljer</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 d-flex align-items-center">
+                                <ul>
+                                    <li class="mb-1"><strong>Id: </strong>@Model.OrderData.Id</li>
+                                    <li class="mb-1"><strong>Skapad: </strong>@Model.OrderData.CreatedAt.ToString("yyyy-MM-dd")</li>
+                                    <li class="mb-1"><strong>Orderdatum: </strong>@Model.OrderData.OrderDate.ToString("yyyy-MM-dd")</li>
+                                    <li class="mb-1"><strong>Beställningsgrupp: </strong>@Model.OrderData.OrderGroup</li>
+                                    <li class="mb-1"><strong>Delområden: </strong>@Model.OrderData.SubArea</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card h-100 d-flex flex-column">
+                    <div class="card-body d-flex flex-column justify-content-between">
+                        <div>
+                            <div class="d-flex align-items-baseline justify-content-start mb-3">
+                                <h4 class="card-title">Produkt</h4>
+                            </div>
+                            <ul>
+                                <li class="mb-1"><strong>Artikelbeskrivning: </strong>@Model.OrderData.ItemDescription</li>
+                                <li class="mb-1"><strong>Artikelnummer: </strong>@Model.OrderData.ArticleNumber</li>
+                                <li class="mb-1"><strong>Leverantör: </strong>@Model.OrderData.SupplierName</li>
+                                <li class="mb-1"><strong>Enhetstyp: </strong>@Model.OrderData.UnitType</li>
+                                <li class="mb-1">
+                                    <strong>Matchad: </strong>
+                                    @if (Model.OrderData.ProductId.HasValue)
+                                    {
+                                        <a href="@Url.Page("/Product/Details", new { id = Model.OrderData.ProductId })">
+                                            Visa produkt
+                                        </a>
+                                    }
+                                    else
+                                    {
+                                        <span id="match-status">Ej matchad</span>
+                                    }
+                                </li>
+                            </ul>
+                        </div>
+                        @if (!Model.OrderData.ProductId.HasValue)
+                        {
+                            <div class="text-center mt-2">
+                                <button id="create-product-button" class="btn btn-primary" onclick="createProduct(@Model.OrderData.Id)">Skapa Produkt</button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex align-items-baseline justify-content-start">
+                            <h4 class="card-title">Finansiell Information</h4>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-12 d-flex align-items-center">
+                                <ul>
+                                    <li class="mb-1"><strong>Konto: </strong>@Model.OrderData.Account</li>
+                                    <li class="mb-1"><strong>Kostnadsställe: </strong>@Model.OrderData.CostCenter</li>
+                                    <li class="mb-1"><strong>Organisation: </strong>@Model.OrderData.Organization</li>
+                                    <li class="mb-1"><strong>Pris: </strong>@Model.OrderData.Price kr</li>
+                                    <li class="mb-1"><strong>Kvitterat kvantitet: </strong>@Model.OrderData.ConfirmedQuantity st</li>
+                                    <li class="mb-1"><strong>Kvitterat nettobelopp: </strong>@Model.OrderData.ConfirmedNetAmount kr</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSRF Token -->
+    <input type="hidden" name="__RequestVerificationToken" value="@tokens.RequestToken" />
+
+    <!-- Knappar under cards-->
+    <div class="row">
+        <div class="col d-flex justify-content-between mt-2">
+            <div>
+                <a asp-page="./Review" class="btn btn-secondary">Gå tillbaka</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@section Scripts {
+    <script>
+        async function createProduct(orderId) {
+            try {
+                const response = await fetch('@Url.Page("/OrderData/Details", new { handler = "CreateIncompleteProduct" })', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                    },
+                    body: JSON.stringify(orderId)
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('match-status').innerHTML = '';
+                    document.getElementById('create-product-button').remove();
+                    const productLink = document.createElement('a');
+                    productLink.href = `/Product/Details?id=${data.productId}`;
+                    productLink.innerText = 'Visa produkt';
+                    document.getElementById('match-status').parentNode.appendChild(productLink);
+                } else {
+                    alert(data.message);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Ett fel uppstod vid skapandet av produkten.');
+            }
+        }
+    </script>
+}

@@ -73,7 +73,16 @@ namespace Examensarbete
             var app = builder.Build();
 
             // Konfigurera HTTP-pipeline för produktionsmiljön.
-            if (!app.Environment.IsDevelopment())
+            //if (!app.Environment.IsDevelopment())
+            //{
+            //    app.UseExceptionHandler("/Error");
+            //    app.UseHsts();
+            //}
+            if (app.Environment.IsDevelopment())
+            {
+                app.UseDeveloperExceptionPage();
+            }
+            else
             {
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();

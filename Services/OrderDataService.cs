@@ -252,6 +252,7 @@ namespace Examensarbete.Services
                 {
                     Name = orderData.ItemDescription,
                     ArticleNumber = orderData.ArticleNumber,
+                    PricePerUnit = (decimal)orderData.Price,
                     IsIncomplete = true
                 };
 
@@ -261,7 +262,7 @@ namespace Examensarbete.Services
                 orderData.ProductId = newProduct.Id;
                 await _context.SaveChangesAsync();
 
-                return new CreateProductDTO { ProductsCreated = 1 };
+                return new CreateProductDTO { ProductsCreated = 1, ProductId = newProduct.Id };
             }
             catch (Exception ex)
             {
@@ -310,6 +311,12 @@ namespace Examensarbete.Services
                 return new CreateProductDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av ofullständiga produkter: {ex.Message}" };
             }
         }
+
+        public async Task<OrderData> GetOrderDataByIdAsync(int id)
+        {
+            return await _context.OrderData.FindAsync(id);
+        }
+
 
 
 

@@ -146,12 +146,13 @@
 
                 <!-- Knapp för att ladda upp ny fil, placerad till vänster -->
                 <div>
-                    <a href="~/uploads/UploadOrderData" class="btn btn-primary me-2">Ladda upp en ny fil</a>
+                    @* <a href="~/uploads/UploadOrderData" class="btn btn-primary">Ladda upp en ny fil</a> *@
+                    <a asp-page="/OrderData/Review" class="btn btn-primary">Ladda upp en ny fil</a>
                 </div>
 
                 <!-- Knappar för att navigera, placerade till höger -->
                 <div>
-                    <a asp-page="../Review" class="btn btn-primary">Gå till Orderdata</a>
+                    <a asp-page="/OrderData/Review" class="btn btn-primary">Gå till Orderdata</a>
                     <a asp-page="/Product/Index" class="btn btn-primary">Gå till Produkter</a>
                 </div>
             </div>
@@ -161,8 +162,8 @@
 </div>
 
 @section Scripts {
-    <script src="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.js"></script>
-    <link href="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/sl-2.0.0/datatables.min.css" rel="stylesheet">
+    <script src="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/datatables.min.js"></script>
+    <link href="https://cdn.datatables.net/v/bs5/dt-2.0.2/b-3.0.1/date-1.5.2/r-3.0.0/datatables.min.css" rel="stylesheet">
 
     <script>
         var originalUnmatchedCount = 0;
@@ -188,21 +189,12 @@
             });
         });
 
-        function updateUnmatchedCountAndMessage() {
+        function updateUnmatchedCountAndMessage(newCount) {
             var unmatchedCountElement = $('#unmatched-count');
-            var unmatchedCount = parseInt(unmatchedCountElement.text());
+            unmatchedCountElement.text(newCount);
 
-            if (isNaN(unmatchedCount)) {
-                unmatchedCount = originalUnmatchedCount;
-            }
-
-            var newCount = unmatchedCount - 1;
-
-            if (newCount > 0) {
-                unmatchedCountElement.text(newCount);
-            } else {
-                var messageContainer = $('#success-alert');
-                $('#unmatched-count').parent().remove();
+            if (newCount <= 0) {
+                $('#unmatched-message').hide();
             }
         }
 
@@ -212,7 +204,9 @@
                 productRow.find('.match-cell').text('Ja');
                 productRow.find('form').remove();
             }
-            updateUnmatchedCountAndMessage();
+            var unmatchedCountElement = $('#unmatched-count');
+            var unmatchedCount = parseInt(unmatchedCountElement.text());
+            updateUnmatchedCountAndMessage(unmatchedCount - 1);
         }
 
         function allProductsSuccess(data, form) {
@@ -227,9 +221,8 @@
                     cell.find('form').remove();
                 }
             });
-            $('form[data-ajax="true"]').remove();
-            $('#message-container').html(successMessage).show();
-            updateUnmatchedCountAndMessage();
+            var unmatchedCountElement = $('#unmatched-count');
+            updateUnmatchedCountAndMessage(0);
         }
 
         function handleFormSubmission(form, successCallback, errorCallback) {
@@ -262,6 +255,4 @@
             });
         }
     </script>
-
-
 }

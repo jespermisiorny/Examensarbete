@@ -68,7 +68,6 @@ namespace Examensarbete.Services
                 }
             }
         }
-
         public async Task<List<OrderData>> GetRecentlyUploadedOrdersAsync(int numberOfRecords)
         {
             return await _context.OrderData
@@ -76,13 +75,11 @@ namespace Examensarbete.Services
                 .Take(numberOfRecords)
                 .ToListAsync();
         }
-
         private bool IsValidFile(string fileName)
         {
             var validFileExtensions = new List<string> { ".xls", ".xlsx", ".xlsm", ".xlt", ".xltx", ".xltm" };
             return validFileExtensions.Any(ext => fileName.EndsWith(ext, StringComparison.OrdinalIgnoreCase));
         }
-
         private async Task<List<OrderData>> ReadOrdersFromFile(string filePath)
         {
             var orders = new List<OrderData>();
@@ -99,7 +96,6 @@ namespace Examensarbete.Services
             }
             return orders;
         }
-
         private async Task<List<OrderData>> RemoveDuplicatesAsync(List<OrderData> orders)
         {
             var existingOrders = await _context.OrderData
@@ -113,7 +109,6 @@ namespace Examensarbete.Services
                     existing.ConfirmedQuantity == order.ConfirmedQuantity))
                 .ToList();
         }
-
         private async Task MatchOrdersToProducts(List<OrderData> orders)
         {
             var productDictionary = await _context.Products.ToDictionaryAsync(p => p.ArticleNumber, p => p);
@@ -123,14 +118,12 @@ namespace Examensarbete.Services
                     order.ProductId = product.Id;
             }
         }
-
         public async Task<IEnumerable<OrderData>> RetrieveUnmatchedOrders()
         {
             return await _context.OrderData
                 .Where(od => od.ProductId == null)
                 .ToListAsync();
         }
-
         public async Task<ImportResultDTO> ImportOrderDataAsync(IFormFile fileUpload)
         {
             if (fileUpload == null || fileUpload.Length == 0)
@@ -166,7 +159,6 @@ namespace Examensarbete.Services
                 File.Delete(filePath);
             }
         }
-
         private async Task<string> SaveUploadedFile(IFormFile fileUpload)
         {
             var folderPath = Path.Combine(_environment.WebRootPath, "uploads");
@@ -192,8 +184,6 @@ namespace Examensarbete.Services
                 throw new ApplicationException("Ett fel uppstod vid sparandet av den uppladdade filen.", ex);
             }
         }
-
-
         private OrderData? CreateOrderDataFromRow(IXLRow row)
         {
             try
@@ -237,7 +227,6 @@ namespace Examensarbete.Services
                 return null;
             }
         }
-
         public async Task<CreateProductDTO> CreateIncompleteProductAsync(int orderId)
         {
             try
@@ -269,7 +258,6 @@ namespace Examensarbete.Services
                 return new CreateProductDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av produkten: {ex.Message}" };
             }
         }
-
         public async Task<CreateProductDTO> CreateAllIncompleteProducts(string jsonData)
         {
             try
@@ -311,14 +299,10 @@ namespace Examensarbete.Services
                 return new CreateProductDTO { ErrorMessage = $"Ett fel uppstod vid skapandet av ofullständiga produkter: {ex.Message}" };
             }
         }
-
         public async Task<OrderData> GetOrderDataByIdAsync(int id)
         {
             return await _context.OrderData.FindAsync(id);
         }
-
-
-
 
     }
 }
